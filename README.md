@@ -17,3 +17,6 @@
 
 ## Публикация
 Workflow GitHub Pages уже добавлен. В Settings → Pages нужно выбрать Source: GitHub Actions.
+
+
+Deployment bootstrap: GitHub Pages via Actions.
