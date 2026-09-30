@@ -21,10 +21,24 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Assemble catalog site
+        run: |
+          cat bundle/site-bundle.part* > /tmp/site-bundle.zip
+          mkdir -p /tmp/unpacked _site
+          unzip -q /tmp/site-bundle.zip -d /tmp/unpacked
+          cp -a /tmp/unpacked/hidden-doors-catalog-2026-site/. _site/
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          path: .
-      - id: deployment
+          path: _site
+
+      - name: Deploy
+        id: deployment
         uses: actions/deploy-pages@v4
