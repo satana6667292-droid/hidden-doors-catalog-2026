@@ -19,19 +19,27 @@
 
   window.CATALOG_EDITOR_BASE=clone(full);
 
-  const KEY='hiddenDoorsCatalog2026.plan.v3';
-  const OLD='hiddenDoorsCatalog2026.plan.v2';
+  const KEY='hiddenDoorsCatalog2026.plan.v4';
+  const OLD_KEYS=['hiddenDoorsCatalog2026.plan.v3','hiddenDoorsCatalog2026.plan.v2'];
   let plan=null;
   try{plan=JSON.parse(localStorage.getItem(KEY)||'null')}catch{}
   if(!plan){
-    try{
-      const old=JSON.parse(localStorage.getItem(OLD)||'null');
-      if(old?.pages?.length){
-        const applied=new Set([3,4,25,26,29,30]);
-        plan={version:3,pages:old.pages.map(x=>applied.has(x.physicalIndex)?{...x,correctionType:'',correctionText:'',correctionDone:false}:x)};
-        localStorage.setItem(KEY,JSON.stringify(plan));
-      }
-    }catch{}
+    for(const oldKey of OLD_KEYS){
+      try{
+        const old=JSON.parse(localStorage.getItem(oldKey)||'null');
+        if(old?.pages?.length){
+          const applied=new Set([3,4,25,26,29,30]);
+          const baseline=new Map(full.map(p=>[p.physicalIndex,p]));
+          plan={version:4,pages:old.pages.map(x=>{
+            if(!applied.has(x.physicalIndex)) return x;
+            const b=baseline.get(x.physicalIndex)||{};
+            return {...x,order:b.order??x.order,included:b.included!==false,pairWithNext:b.pairWithNext,correctionType:'',correctionText:'',correctionDone:false};
+          })};
+          localStorage.setItem(KEY,JSON.stringify(plan));
+          break;
+        }
+      }catch{}
+    }
   }
 
   const planMap=new Map((plan?.pages||[]).map(p=>[p.physicalIndex,p]));
