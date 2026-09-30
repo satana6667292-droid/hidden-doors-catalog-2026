@@ -30,12 +30,12 @@ jobs:
           mkdir -p /tmp/unpacked _site
           unzip -q /tmp/site-bundle.zip -d /tmp/unpacked
           cp -a /tmp/unpacked/hidden-doors-catalog-2026-site/. _site/
-          cp editor-pre.js editor-v3.js visual-fixes.js resolved-corrections.js _site/
+          cp editor-pre.js editor-v4.js visual-fixes.js resolved-corrections.js _site/
           python3 - <<'PY'
           from pathlib import Path
           p=Path("_site/index.html")
           s=p.read_text()
-          s=s.replace('<script src="app.js"></script>', '<script src="editor-pre.js"></script>\n  <script src="app.js"></script>\n  <script src="resolved-corrections.js"></script>\n  <script src="editor-v3.js"></script>\n  <script src="visual-fixes.js"></script>')
+          s=s.replace('<script src="app.js"></script>', '<script src="editor-pre.js"></script>\n  <script src="app.js"></script>\n  <script src="resolved-corrections.js"></script>\n  <script src="editor-v4.js"></script>\n  <script src="visual-fixes.js"></script>')
           p.write_text(s)
           PY
 
