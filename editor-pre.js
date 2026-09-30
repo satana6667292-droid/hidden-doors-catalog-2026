@@ -19,8 +19,8 @@
 
   window.CATALOG_EDITOR_BASE=clone(full);
 
-  const KEY='hiddenDoorsCatalog2026.plan.v5';
-  const OLD_KEYS=['hiddenDoorsCatalog2026.plan.v4','hiddenDoorsCatalog2026.plan.v3','hiddenDoorsCatalog2026.plan.v2'];
+  const KEY='hiddenDoorsCatalog2026.plan.v6';
+  const OLD_KEYS=['hiddenDoorsCatalog2026.plan.v5','hiddenDoorsCatalog2026.plan.v4','hiddenDoorsCatalog2026.plan.v3','hiddenDoorsCatalog2026.plan.v2'];
   let plan=null;
   try{plan=JSON.parse(localStorage.getItem(KEY)||'null')}catch{}
   if(!plan){
@@ -30,7 +30,7 @@
         if(old?.pages?.length){
           const applied=new Set([3,4,25,26,29,30]);
           const baseline=new Map(full.map(p=>[p.physicalIndex,p]));
-          plan={version:5,pages:old.pages.map(x=>{
+          plan={version:6,pages:old.pages.map(x=>{
             if(!applied.has(x.physicalIndex)) return x;
             const b=baseline.get(x.physicalIndex)||{};
             return {...x,order:b.order??x.order,included:b.included!==false,pairWithNext:b.pairWithNext,correctionType:'',correctionText:'',correctionDone:false,correctionId:''};
