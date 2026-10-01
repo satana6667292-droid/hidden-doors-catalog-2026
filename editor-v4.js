@@ -1,7 +1,7 @@
 (()=>{
   const BASE=window.CATALOG_EDITOR_BASE||[];
   if(!BASE.length)return;
-  const KEY='hiddenDoorsCatalog2026.plan.v8';
+  const KEY='hiddenDoorsCatalog2026.plan.v10';
   const clone=v=>JSON.parse(JSON.stringify(v));
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const $=q=>document.querySelector(q), $$=q=>[...document.querySelectorAll(q)];
@@ -24,11 +24,21 @@
       correctionType:solved?'':(s.correctionType||''),
       correctionText:solved?'':(s.correctionText||''),
       correctionId:solved?'':(s.correctionId||''),
-      moved:!!s.moved, pairEdited:!!s.pairEdited
+      moved:!!s.moved, pairEdited:!!s.pairEdited, images:solved?[]:(Array.isArray(s.images)?clone(s.images):[])
     };
   });
 
   let open=false,tab='layout',selected=null,moveId=null,dragId=null,undoStack=[],redoStack=[];
+  let viewerPageId=null,viewerZoom=1;
+  const DB_NAME='hiddenDoorsCatalogAssets',DB_STORE='assets';
+  const assetUrls=new Map();
+  function fullSrc(p){const t=String(p?.thumb||'');return p?.page||p?.src||p?.image||t.replace('/thumbs/','/pages/');}
+  function openAssetDb(){return new Promise((resolve,reject)=>{const q=indexedDB.open(DB_NAME,1);q.onupgradeneeded=()=>{if(!q.result.objectStoreNames.contains(DB_STORE))q.result.createObjectStore(DB_STORE)};q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error)})}
+  async function putAsset(id,file){const db=await openAssetDb();await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).put(file,id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()}
+  async function getAsset(id){const db=await openAssetDb();const v=await new Promise((resolve,reject)=>{const q=db.transaction(DB_STORE,'readonly').objectStore(DB_STORE).get(id);q.onsuccess=()=>resolve(q.result||null);q.onerror=()=>reject(q.error)});db.close();return v}
+  async function deleteAsset(id){try{const db=await openAssetDb();await new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,'readwrite');tx.objectStore(DB_STORE).delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()}catch{}const u=assetUrls.get(id);if(u){URL.revokeObjectURL(u);assetUrls.delete(id)}}
+  async function assetUrl(id){if(assetUrls.has(id))return assetUrls.get(id);const blob=await getAsset(id);if(!blob)return'';const u=URL.createObjectURL(blob);assetUrls.set(id,u);return u}
+  function fileDimensions(file){return new Promise(resolve=>{const u=URL.createObjectURL(file),im=new Image();im.onload=()=>{resolve({w:im.naturalWidth||1,h:im.naturalHeight||1});URL.revokeObjectURL(u)};im.onerror=()=>{resolve({w:1,h:1});URL.revokeObjectURL(u)};im.src=u})}
   const ordered=()=>[...pages].sort((a,b)=>a.order-b.order||a.physicalIndex-b.physicalIndex);
   const visible=()=>ordered().filter(p=>p.included!==false);
   const find=id=>pages.find(p=>p.physicalIndex===Number(id));
@@ -52,6 +62,7 @@
     if(p.pairEdited&&p.pairWithNext!==b.pairWithNext)a.push(p.pairWithNext?'Сделать разворот со следующей страницей':'Разорвать разворот со следующей страницей');
     if(p.correctionType)a.push(typeLabel(p.correctionType));
     if((p.correctionText||'').trim())a.push(p.correctionText.trim());
+    (p.images||[]).forEach(im=>a.push(`Разместить изображение «${im.name||'изображение'}» — X ${Math.round((im.x||0)*100)}%, Y ${Math.round((im.y||0)*100)}%, ширина ${Math.round((im.w||0)*100)}%`));
     return a;
   }
   function correctionRows(){return ordered().map(p=>({p,b:bits(p)})).filter(x=>x.b.length);}
@@ -64,10 +75,10 @@
       if(p.pairEdited&&p.pairWithNext===baseMap.get(p.physicalIndex)?.pairWithNext)p.pairEdited=false;
       const has=bits(p).length>0;if(has&&!p.correctionId)p.correctionId=newId(p);if(!has)p.correctionId='';
     });
-    try{localStorage.setItem(KEY,JSON.stringify({version:8,pages:pages.map(p=>({physicalIndex:p.physicalIndex,order:p.order,included:p.included,pairWithNext:p.pairWithNext,correctionType:p.correctionType||'',correctionText:p.correctionText||'',correctionId:p.correctionId||'',moved:!!p.moved,pairEdited:!!p.pairEdited}))}))}catch{}
+    try{localStorage.setItem(KEY,JSON.stringify({version:10,pages:pages.map(p=>({physicalIndex:p.physicalIndex,order:p.order,included:p.included,pairWithNext:p.pairWithNext,correctionType:p.correctionType||'',correctionText:p.correctionText||'',correctionId:p.correctionId||'',moved:!!p.moved,pairEdited:!!p.pairEdited,images:Array.isArray(p.images)?clone(p.images):[]}))}))}catch{}
     updateTopBadge();
   }
-  function snapshot(){return clone(pages.map(p=>({physicalIndex:p.physicalIndex,order:p.order,included:p.included,pairWithNext:p.pairWithNext,correctionType:p.correctionType,correctionText:p.correctionText,correctionId:p.correctionId,moved:!!p.moved,pairEdited:!!p.pairEdited})));}
+  function snapshot(){return clone(pages.map(p=>({physicalIndex:p.physicalIndex,order:p.order,included:p.included,pairWithNext:p.pairWithNext,correctionType:p.correctionType,correctionText:p.correctionText,correctionId:p.correctionId,moved:!!p.moved,pairEdited:!!p.pairEdited,images:Array.isArray(p.images)?clone(p.images):[]})));}
   function restore(s){const m=new Map(s.map(x=>[x.physicalIndex,x]));pages.forEach(p=>Object.assign(p,m.get(p.physicalIndex)||{}));persist();render();}
   function mutate(fn){undoStack.push(snapshot());if(undoStack.length>40)undoStack.shift();redoStack=[];fn();persist();render();}
   function undo(){if(!undoStack.length)return;redoStack.push(snapshot());restore(undoStack.pop());}
@@ -126,7 +137,7 @@
   function card(p,side){
     return `<article class="ce-card ${selected===p.physicalIndex?'selected':''} ${moveId===p.physicalIndex?'moving':''} ${bits(p).length?'changed':''}" data-id="${p.physicalIndex}">
       <div class="ce-img"><img src="${p.thumb}" draggable="false" alt=""><span class="ce-num">${p.label}</span><span class="ce-side">${side}</span></div>
-      <div class="ce-body"><b>${esc(p.title)}</b><span class="ce-status ${p.status}">${status(p)}</span>
+      <div class="ce-body"><b>${esc(p.title)}</b><div class="ce-meta-line"><span class="ce-status ${p.status}">${status(p)}</span>${(p.images||[]).length?`<span class="ce-photo-badge">Фото: ${p.images.length}</span>`:''}</div>
         <div class="ce-actions"><button data-act="open">Правка</button>${p.physicalIndex!==1?'<button data-act="move">Переместить</button><button data-act="hide">Убрать</button>':''}</div>${p.physicalIndex!==1?'<div class="ce-drag-handle" draggable="true" title="Зажмите и перетащите">⠿ Тянуть мышкой</div>':''}
       </div>
     </article>`;
@@ -154,8 +165,14 @@
     const p=find(selected);
     if(!p)return '<div class="ce-inspector-empty"><b>Выберите страницу</b><span>Нажмите на карточку. Здесь появятся действия и поле для комментария.</span></div>';
     return `<div class="ce-inspector-head"><span>Страница ${p.label}</span><b>${esc(p.title)}</b><small>Позиция ${currentVisiblePos().get(p.physicalIndex)??'—'} · ${status(p)}</small></div>
-      <div class="ce-inspector-actions">${p.physicalIndex!==1?`<button id="ceMoveBtn" class="${moveId===p.physicalIndex?'on':''}">${moveId===p.physicalIndex?'Отменить перенос':'↔ Переместить страницу'}</button><button id="ceHideBtn" class="danger">${p.included?'Убрать из каталога':'Вернуть в каталог'}</button>`:''}</div>
+      <div class="ce-inspector-actions"><button id="ceOpenLarge">⛶ Увеличить страницу</button>${p.physicalIndex!==1?`<button id="ceMoveBtn" class="${moveId===p.physicalIndex?'on':''}">${moveId===p.physicalIndex?'Отменить перенос':'↔ Переместить страницу'}</button><button id="ceHideBtn" class="danger">${p.included?'Убрать из каталога':'Вернуть в каталог'}</button>`:''}</div>
       ${p.physicalIndex!==1&&p.included?`<div class="ce-control"><label><b>Разворот со следующей</b><span>${p.pairWithNext?'Следующая страница будет справа':'Эта страница будет отдельной'}</span></label><input id="cePair" type="checkbox" ${p.pairWithNext?'checked':''}></div>`:''}
+      <div class="ce-assets"><div class="ce-assets-head"><div><b>Изображения на странице</b><span>Загрузи фото и расположи его прямо на увеличенной странице.</span></div></div>
+        <input id="ceImageUpload" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+        <button id="ceUploadImage" class="ce-upload-image">＋ Загрузить изображение</button>
+        ${(p.images||[]).length?`<div class="ce-asset-list">${p.images.map(im=>`<div class="ce-asset-row" data-image-id="${im.id}"><span><b>${esc(im.name||'Изображение')}</b><small>на странице</small></span><button data-place-image>Открыть</button><button data-delete-image class="danger">Удалить</button></div>`).join('')}</div>`:''}
+        <small class="ce-local-note">Изображение хранится в этом браузере как рабочий макет до публикации.</small>
+      </div>
       <div class="ce-note"><label>Тип правки</label><select id="ceType"><option value="">Без отдельной правки</option><option value="text" ${p.correctionType==='text'?'selected':''}>Исправить текст</option><option value="image" ${p.correctionType==='image'?'selected':''}>Заменить изображение</option><option value="design" ${p.correctionType==='design'?'selected':''}>Поправить дизайн</option><option value="tech" ${p.correctionType==='tech'?'selected':''}>Исправить тех. данные</option><option value="spread" ${p.correctionType==='spread'?'selected':''}>Изменить разворот</option><option value="other" ${p.correctionType==='other'?'selected':''}>Другое</option></select><label>Что изменить</label><textarea id="ceNote" rows="7" placeholder="Например: уменьшить логотип; заменить фото; убрать блок справа…">${esc(p.correctionText||'')}</textarea><button id="ceSaveNote">Сохранить правку</button><small>После публикации исправления правка исчезнет автоматически.</small></div>`;
   }
   function correctionsHtml(){
