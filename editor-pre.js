@@ -20,8 +20,8 @@
 
   window.CATALOG_EDITOR_BASE=clone(pages);
 
-  const KEY='hiddenDoorsCatalog2026.plan.v8';
-  const OLD_KEYS=['hiddenDoorsCatalog2026.plan.v7','hiddenDoorsCatalog2026.plan.v6','hiddenDoorsCatalog2026.plan.v5','hiddenDoorsCatalog2026.plan.v4','hiddenDoorsCatalog2026.plan.v3','hiddenDoorsCatalog2026.plan.v2'];
+  const KEY='hiddenDoorsCatalog2026.plan.v9';
+  const OLD_KEYS=['hiddenDoorsCatalog2026.plan.v8','hiddenDoorsCatalog2026.plan.v7','hiddenDoorsCatalog2026.plan.v6','hiddenDoorsCatalog2026.plan.v5','hiddenDoorsCatalog2026.plan.v4','hiddenDoorsCatalog2026.plan.v3','hiddenDoorsCatalog2026.plan.v2'];
   let plan=null;
   try{plan=JSON.parse(localStorage.getItem(KEY)||'null')}catch{}
   if(!plan){
@@ -29,7 +29,10 @@
       try{
         const old=JSON.parse(localStorage.getItem(k)||'null');
         if(old?.pages?.length){
-          plan={version:8,pages:old.pages.map(x=>({...x}))};
+          plan={version:9,pages:old.pages.map(x=>{
+            if(x.physicalIndex===28) return {...x,correctionType:'',correctionText:'',correctionId:''};
+            return {...x};
+          })};
           try{localStorage.setItem(KEY,JSON.stringify(plan))}catch{}
           break;
         }
@@ -39,10 +42,13 @@
 
   const map=new Map((plan?.pages||[]).map(x=>[x.physicalIndex,x]));
   pages.forEach(p=>{
+    if(p.physicalIndex===28){p.status='approved';p.statusText='Согласовано';}
     const q=map.get(p.physicalIndex);
     if(!q)return;
     ['order','included','pairWithNext','correctionType','correctionText','correctionId'].forEach(k=>{if(q[k]!==undefined)p[k]=q[k]});
   });
+
+  const approved27=pages.find(p=>p.physicalIndex===28);if(approved27){approved27.status='approved';approved27.statusText='Согласовано';approved27.correctionType='';approved27.correctionText='';approved27.correctionId='';}
 
   // Sanity: cover stays first; unique order; hidden applied pages stay hidden unless user explicitly restored them in v7 state.
   pages.sort((a,b)=>(a.order??999)-(b.order??999)||a.physicalIndex-b.physicalIndex);
