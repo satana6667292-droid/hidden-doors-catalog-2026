@@ -2,7 +2,6 @@
   const MEDIA_KEY='hiddenDoorsCatalog2026.media.v1';
   const DB_NAME='hiddenDoorsCatalogAssets';
   const DB_STORE='assets';
-  const PLAN_KEY='hiddenDoorsCatalog2026.plan.v10';
   const objectUrls=new Map();
   let viewerPageId=null;
   let zoom=1;
@@ -106,7 +105,7 @@
     const st=document.createElement('style');
     st.textContent=`
       .ce-media-clickable{cursor:zoom-in!important}
-      .ce-addon-photo{font-size:9px;font-weight:800;border-radius:99px;padding:4px 7px;background:#e9f3ff;color:#326eae;margin-left:5px}.ce-addon-approve{background:#57c035!important;color:#fff!important;border-color:#57c035!important}.ce-addon-approve.done{opacity:1!important;cursor:default!important}.ce-addon-approval-panel{padding:12px 0;border-bottom:1px solid #eee;display:grid;gap:7px}.ce-addon-approval-main{width:100%;border:0;border-radius:9px;background:#57c035;color:#fff;padding:12px 10px;font-weight:900;cursor:pointer}.ce-addon-approval-main.done:disabled{opacity:1;cursor:default}.ce-addon-back-work{border:1px solid #cbdcc4;background:#f4faF2;color:#4b8f37;border-radius:8px;padding:7px 9px;font-weight:800;cursor:pointer}
+      .ce-addon-photo{font-size:9px;font-weight:800;border-radius:99px;padding:4px 7px;background:#e9f3ff;color:#326eae;margin-left:5px}
       .ce-assets{padding:12px 0;border-bottom:1px solid #eee;display:grid;gap:8px}.ce-assets-head b{display:block;font-size:11px}.ce-assets-head span{display:block;font-size:9px;color:#777;margin-top:3px;line-height:1.35}.ce-upload-image{border:1px dashed #82c96a!important;background:#f1faee!important;color:#3f8d2d!important;border-radius:9px;padding:10px;font-weight:900;cursor:pointer}.ce-local-note{font-size:8px;color:#777;line-height:1.35}
       .ce-asset-list,.ce-addon-list{display:grid;gap:5px;margin-top:6px}.ce-asset-row,.ce-addon-row{display:grid;grid-template-columns:1fr auto auto;gap:5px;align-items:center;border:1px solid #eee;border-radius:8px;padding:6px}.ce-asset-row span,.ce-addon-row span{min-width:0}.ce-asset-row b,.ce-addon-row b{display:block;font-size:9px;max-width:155px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ce-asset-row small,.ce-addon-row small{display:block;font-size:8px;color:#777}.ce-asset-row button,.ce-addon-row button{border:1px solid #ddd;background:#fff;border-radius:6px;padding:5px 7px;font-size:8px;font-weight:800;cursor:pointer}.ce-asset-row .danger,.ce-addon-row .danger{color:#b64242}
       #ceMediaViewer{position:fixed;inset:0;z-index:1500;background:#151615f5;color:#fff;display:grid;grid-template-rows:64px 1fr}#ceMediaViewer.hidden{display:none}
@@ -133,71 +132,37 @@
     $('#cemFit').onclick=()=>{zoom=1;renderViewer()};
   }
 
-  function readPlan(){
-    try{return JSON.parse(localStorage.getItem(PLAN_KEY)||'{"version":10,"pages":[]}')}catch{return {version:10,pages:[]}}
-  }
-  function setApproval(id,approved){
-    const plan=readPlan();plan.version=10;plan.pages=Array.isArray(plan.pages)?plan.pages:[];
-    let p=plan.pages.find(x=>Number(x.physicalIndex)===Number(id));
-    if(!p){p={physicalIndex:Number(id)};plan.pages.push(p)}
-    p.status=approved?'approved':'work';
-    p.statusText=approved?'Согласовано':'В работе';
-    localStorage.setItem(PLAN_KEY,JSON.stringify(plan));
-    location.reload();
-  }
-  function cardApproved(card){
-    return !!card?.querySelector('.ce-status.approved') || /Согласовано/i.test(card?.querySelector('.ce-status')?.textContent||'');
-  }
-
   function decorate(){
     ensureUi();
     $$('.ce-card').forEach(card=>{
       const id=Number(card.dataset.id),img=card.querySelector('.ce-img');
       if(img)img.classList.add('ce-media-clickable');
       const count=pageMedia(id).page.images?.length||0;
-      card.querySelectorAll('.ce-addon-photo').forEach(x=>x.remove());
+      let badge=card.querySelector('.ce-addon-photo');
       if(count&&!card.querySelector('.ce-photo-badge')){
         const meta=card.querySelector('.ce-meta-line')||card.querySelector('.ce-body');
         if(meta){
-          const b=document.createElement('span');
-          b.className='ce-addon-photo';
-          b.textContent=`Фото: ${count}`;
-          meta.appendChild(b);
+          if(!badge){badge=document.createElement('span');badge.className='ce-addon-photo';meta.appendChild(badge)}
+          badge.textContent=`Фото: ${count}`;
         }
-      }
-      const actions=card.querySelector('.ce-actions');
-      if(actions&&!actions.querySelector('.ce-addon-approve')){
-        const b=document.createElement('button');
-        b.className='ce-addon-approve '+(cardApproved(card)?'done':'');
-        b.dataset.approvalPage=id;
-        b.textContent=cardApproved(card)?'✓ Согласовано':'✓ Согласовать';
-        actions.insertBefore(b,actions.firstChild?.nextSibling||null);
-      }
+      }else if(badge){badge.remove()}
     });
     decorateInspector();
   }
 
   function decorateInspector(){
-    const id=selectedId(),box=$('.ce-assets'),inspector=$('.ce-inspector');
-    if(!id||!inspector)return;
-    inspector.querySelectorAll('.ce-addon-approval-panel').forEach(x=>x.remove());
-    const card=selectedCard(id),approved=cardApproved(card);
-    const panel=document.createElement('div');
-    panel.className='ce-addon-approval-panel';
-    panel.innerHTML=approved
-      ? '<button class="ce-addon-approval-main done" disabled>✓ СОГЛАСОВАНО</button><button class="ce-addon-back-work" data-approval-back>Вернуть в работу</button>'
-      : '<button class="ce-addon-approval-main" data-approval-main>✓ СОГЛАСОВАТЬ СТРАНИЦУ</button>';
-    const head=inspector.querySelector('.ce-inspector-head');
-    (head?.nextSibling?inspector.insertBefore(panel,head.nextSibling):inspector.prepend(panel));
-    if(!box)return;
-    box.querySelectorAll('.ce-addon-list').forEach(x=>x.remove());
+    const id=selectedId(),box=$('.ce-assets');
+    if(!id||!box)return;
     box.querySelectorAll('.ce-asset-list').forEach(x=>x.style.display='none');
     const images=pageMedia(id).page.images||[];
-    if(!images.length)return;
-    const wrap=document.createElement('div');
-    wrap.className='ce-addon-list';
-    wrap.innerHTML=images.map(im=>`<div class="ce-addon-row" data-addon-image="${im.id}"><span><b>${escapeHtml(im.name||'Изображение')}</b><small>рабочее фото</small></span><button data-addon-open>Открыть</button><button data-addon-delete class="danger">Удалить</button></div>`).join('');
-    box.appendChild(wrap);
+    let wrap=box.querySelector('.ce-addon-list');
+    const sig=JSON.stringify(images.map(im=>[im.id,im.name]));
+    if(!images.length){if(wrap)wrap.remove();return}
+    if(!wrap){wrap=document.createElement('div');wrap.className='ce-addon-list';box.appendChild(wrap)}
+    if(wrap.dataset.sig!==sig){
+      wrap.dataset.sig=sig;
+      wrap.innerHTML=images.map(im=>`<div class="ce-addon-row" data-addon-image="${im.id}"><span><b>${escapeHtml(im.name||'Изображение')}</b><small>рабочее фото</small></span><button data-addon-open>Открыть</button><button data-addon-delete class="danger">Удалить</button></div>`).join('');
+    }
   }
   function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
@@ -289,10 +254,6 @@
 
   // Event delegation survives editor re-renders.
   document.addEventListener('click',e=>{
-    const quick=e.target.closest('.ce-addon-approve');
-    if(quick){e.preventDefault();e.stopPropagation();const id=Number(quick.dataset.approvalPage);if(!quick.classList.contains('done'))setApproval(id,true);return}
-    if(e.target.closest('[data-approval-main]')){e.preventDefault();setApproval(selectedId(),true);return}
-    if(e.target.closest('[data-approval-back]')){e.preventDefault();if(confirm('Вернуть страницу в статус «В работе»?'))setApproval(selectedId(),false);return}
     const card=e.target.closest('.ce-card');
     if(card&&e.target.closest('.ce-img')){
       e.preventDefault();e.stopPropagation();openViewer(Number(card.dataset.id));return;
@@ -320,7 +281,16 @@
     if(e.key==='Escape'&&!$('#ceMediaViewer')?.classList.contains('hidden')){closeViewer();e.stopPropagation()}
   },true);
 
-  const mo=new MutationObserver(()=>decorate());
-  mo.observe(document.body,{childList:true,subtree:true});
+  let decorateQueued=false;
+  const mo=new MutationObserver(()=>{
+    if(decorateQueued)return;
+    decorateQueued=true;
+    requestAnimationFrame(()=>{
+      decorateQueued=false;
+      mo.disconnect();
+      try{decorate()}finally{mo.observe(document.body,{childList:true,subtree:true})}
+    });
+  });
   ensureUi();decorate();
+  mo.observe(document.body,{childList:true,subtree:true});
 })();
