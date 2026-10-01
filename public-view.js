@@ -5,8 +5,9 @@
 
   const pid=p=>Number(p.physicalIndex??p.id);
   const pad=n=>String(n).padStart(3,'0');
-  const pageSrc=p=>`assets/pages/page-${pad(pid(p))}.webp`;
-  const thumbSrc=p=>`assets/thumbs/page-${pad(pid(p))}.webp`;
+  const ASSET_V='master14';
+  const pageSrc=p=>`assets/pages/page-${pad(pid(p))}.webp?v=${ASSET_V}`;
+  const thumbSrc=p=>`assets/thumbs/page-${pad(pid(p))}.webp?v=${ASSET_V}`;
   const byId=new Map(raw.map(p=>[pid(p),p]));
   const publicNum=p=>p.catalogNumber||String((raw.indexOf(p)+1)).padStart(2,'0');
   const isMobile=()=>window.matchMedia('(max-width:760px)').matches;
