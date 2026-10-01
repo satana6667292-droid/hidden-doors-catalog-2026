@@ -189,7 +189,7 @@
   }
 
   function pageMarkup(p,side='',useThumb=false){
-    return pid(p)===3?livePageMarkup(p,side):imagePageMarkup(p,side,useThumb);
+    return imagePageMarkup(p,side,useThumb);
   }
 
   function currentSpread(){return spreads[Math.max(0,Math.min(spreadIndex,spreads.length-1))]}
@@ -252,7 +252,7 @@
     const groups=sections.map(sec=>({sec,pages:raw.filter(sec.test)})).filter(g=>g.pages.length);
     $('#hdpDrawerList').innerHTML=groups.map(g=>`<section><h3>${g.sec.label}</h3>${g.pages.map(p=>`
       <button class="hdp-drawer-item" data-jump="${pid(p)}">
-        ${pid(p)===3?'<span class="hdp-drawer-live">Содержание</span>':`<img src="${thumbSrc(p)}" alt="">`}
+        <img src="${thumbSrc(p)}" alt="">
         <span><b>${publicNum(p)} · ${esc(p.title)}</b><small>Открыть страницу</small></span>
       </button>`).join('')}</section>`).join('');
     $('#hdpDrawerList').onclick=e=>{
@@ -278,14 +278,14 @@
   }
 
   function updateLightWidth(label){
-    if(!lightPage||pid(lightPage)===3)return;
+    if(!lightPage)return;
     const img=$('#hdpLightImg');
     img.style.width=`${Math.round(lightBaseWidth*lightScale)}px`;
     $('#hdpZoomText').textContent=label||`${Math.round(lightScale*100)}%`;
   }
 
   function setLightFit(){
-    if(!lightPage||pid(lightPage)===3)return;
+    if(!lightPage)return;
     lightBaseWidth=fitWidth();lightScale=1;
     updateLightWidth('Вписано');
     const stage=$('#hdpLightStage');stage.scrollLeft=0;stage.scrollTop=0;
@@ -293,7 +293,7 @@
 
   function setLightActual(){
     const img=$('#hdpLightImg');
-    if(!lightPage||pid(lightPage)===3||!img.naturalWidth)return;
+    if(!lightPage||!img.naturalWidth)return;
     lightBaseWidth=img.naturalWidth;lightScale=1;updateLightWidth('100%');
   }
 
@@ -303,17 +303,11 @@
     $('#hdpLightbox').classList.remove('hidden');
     document.body.classList.add('hdp-no-scroll');
     const img=$('#hdpLightImg'),live=$('#hdpLightLive');
-    if(pid(page)===3){
-      img.classList.add('hidden');live.classList.remove('hidden');live.innerHTML=contentsHtml();
-      $('#hdpZoomText').textContent='HTML';
-      $('#hdpZoomOut').disabled=true;$('#hdpZoomIn').disabled=true;$('#hdpZoomActual').disabled=true;$('#hdpZoomFit').disabled=true;
-    }else{
-      live.classList.add('hidden');live.innerHTML='';img.classList.remove('hidden');
-      $('#hdpZoomOut').disabled=false;$('#hdpZoomIn').disabled=false;$('#hdpZoomActual').disabled=false;$('#hdpZoomFit').disabled=false;
-      img.onload=()=>requestAnimationFrame(setLightFit);
-      img.src=pageSrc(page);
-      if(img.complete)requestAnimationFrame(setLightFit);
-    }
+    live.classList.add('hidden');live.innerHTML='';img.classList.remove('hidden');
+    $('#hdpZoomOut').disabled=false;$('#hdpZoomIn').disabled=false;$('#hdpZoomActual').disabled=false;$('#hdpZoomFit').disabled=false;
+    img.onload=()=>requestAnimationFrame(setLightFit);
+    img.src=pageSrc(page);
+    if(img.complete)requestAnimationFrame(setLightFit);
   }
 
   function closeLight(){
@@ -357,7 +351,7 @@
   const stage=$('#hdpLightStage');
   let pan=null;
   stage.addEventListener('pointerdown',e=>{
-    if($('#hdpLightbox').classList.contains('hidden')||pid(lightPage||{})===3)return;
+    if($('#hdpLightbox').classList.contains('hidden')||!lightPage)return;
     pan={x:e.clientX,y:e.clientY,left:stage.scrollLeft,top:stage.scrollTop};
     stage.setPointerCapture?.(e.pointerId);
     stage.classList.add('dragging');
@@ -393,7 +387,7 @@
       const p=now?(currentSpread()?.pages?.[0]||raw[0]):raw[mobileIndex]||raw[0];
       syncIndexesFromPage(p);lastMobile=now;renderReading();
     }
-    if(!$('#hdpLightbox').classList.contains('hidden')&&lightPage&&pid(lightPage)!==3&&$('#hdpZoomText').textContent==='Вписано')setLightFit();
+    if(!$('#hdpLightbox').classList.contains('hidden')&&lightPage&&$('#hdpZoomText').textContent==='Вписано')setLightFit();
   });
 
   renderSections();
