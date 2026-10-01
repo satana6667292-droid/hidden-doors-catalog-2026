@@ -36,16 +36,18 @@ jobs:
           mkdir -p /tmp/unpacked _site
           unzip -q /tmp/site-bundle.zip -d /tmp/unpacked
           cp -a /tmp/unpacked/hidden-doors-catalog-2026-site/. _site/
-          # Approved replacement: label 27 = physical asset page-028.webp
-          cat page-overrides/page-028.b64.part* | base64 -d > /tmp/page-028.webp
-          cp /tmp/page-028.webp _site/assets/pages/page-028.webp
-          cp /tmp/page-028.webp _site/assets/thumbs/page-028.webp
+          # Approved/corrected page overrides.
+          for n in 002 003 028; do
+            cat page-overrides/page-${n}.b64.part* | base64 -d > "/tmp/page-${n}.webp"
+            cp "/tmp/page-${n}.webp" "_site/assets/pages/page-${n}.webp"
+            cp "/tmp/page-${n}.webp" "_site/assets/thumbs/page-${n}.webp"
+          done
           cp editor-pre.js editor-v4.js editor-media.js visual-fixes.js resolved-corrections.js public-view.js public-view.css _site/
           python3 - <<'PY'
           from pathlib import Path
           p=Path("_site/index.html")
           s=p.read_text()
-          s=s.replace('<script src="app.js"></script>', '<script src="editor-pre.js?v=20261001-1048"></script>\n  <script src="app.js"></script>\n  <script src="resolved-corrections.js?v=20261001-1048"></script>\n  <script src="editor-v4.js?v=20261001-1048"></script>\n  <script src="editor-media.js?v=20261001-1048"></script>\n  <link rel="stylesheet" href="public-view.css?v=20261001-public1">\n  <script src="public-view.js?v=20261001-public1"></script>\n  <script src="visual-fixes.js?v=20261001-1048"></script>')
+          s=s.replace('<script src="app.js"></script>', '<script src="editor-pre.js?v=20261001-fixes2"></script>\n  <script src="app.js"></script>\n  <script src="resolved-corrections.js?v=20261001-fixes2"></script>\n  <script src="editor-v4.js?v=20261001-fixes2"></script>\n  <script src="editor-media.js?v=20261001-fixes2"></script>\n  <link rel="stylesheet" href="public-view.css?v=20261001-public2">\n  <script src="public-view.js?v=20261001-public2"></script>\n  <script src="visual-fixes.js?v=20261001-fixes2"></script>')
           p.write_text(s)
           PY
 
