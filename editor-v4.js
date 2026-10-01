@@ -1,7 +1,7 @@
 (()=>{
   const BASE=window.CATALOG_EDITOR_BASE||[];
   if(!BASE.length)return;
-  const KEY='hiddenDoorsCatalog2026.plan.v11';
+  const KEY='hiddenDoorsCatalog2026.plan.v12';
   const clone=v=>JSON.parse(JSON.stringify(v));
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const $=q=>document.querySelector(q), $$=q=>[...document.querySelectorAll(q)];
@@ -75,7 +75,7 @@
       if(p.pairEdited&&p.pairWithNext===baseMap.get(p.physicalIndex)?.pairWithNext)p.pairEdited=false;
       const has=bits(p).length>0;if(has&&!p.correctionId)p.correctionId=newId(p);if(!has)p.correctionId='';
     });
-    try{localStorage.setItem(KEY,JSON.stringify({version:11,pages:pages.map(p=>({physicalIndex:p.physicalIndex,order:p.order,included:p.included,pairWithNext:p.pairWithNext,correctionType:p.correctionType||'',correctionText:p.correctionText||'',correctionId:p.correctionId||'',moved:!!p.moved,pairEdited:!!p.pairEdited,images:Array.isArray(p.images)?clone(p.images):[],status:p.status,statusText:p.statusText}))}))}catch{}
+    try{localStorage.setItem(KEY,JSON.stringify({version:12,pages:pages.map(p=>({physicalIndex:p.physicalIndex,order:p.order,included:p.included,pairWithNext:p.pairWithNext,correctionType:p.correctionType||'',correctionText:p.correctionText||'',correctionId:p.correctionId||'',moved:!!p.moved,pairEdited:!!p.pairEdited,images:Array.isArray(p.images)?clone(p.images):[],status:p.status,statusText:p.statusText}))}))}catch{}
     updateTopBadge();
   }
   function snapshot(){return clone(pages.map(p=>({physicalIndex:p.physicalIndex,order:p.order,included:p.included,pairWithNext:p.pairWithNext,correctionType:p.correctionType,correctionText:p.correctionText,correctionId:p.correctionId,moved:!!p.moved,pairEdited:!!p.pairEdited,images:Array.isArray(p.images)?clone(p.images):[],status:p.status,statusText:p.statusText})));}
