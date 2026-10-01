@@ -45,7 +45,7 @@ jobs:
           from pathlib import Path
           p=Path("_site/index.html")
           s=p.read_text()
-          s=s.replace('<script src="app.js"></script>', '<script src="editor-pre.js"></script>\n  <script src="app.js"></script>\n  <script src="resolved-corrections.js"></script>\n  <script src="editor-v4.js"></script>\n  <script src="editor-media.js"></script>\n  <script src="visual-fixes.js"></script>')
+          s=s.replace('<script src="app.js"></script>', '<script src="editor-pre.js?v=20261001-1048"></script>\n  <script src="app.js"></script>\n  <script src="resolved-corrections.js?v=20261001-1048"></script>\n  <script src="editor-v4.js?v=20261001-1048"></script>\n  <script src="editor-media.js?v=20261001-1048"></script>\n  <script src="visual-fixes.js?v=20261001-1048"></script>')
           p.write_text(s)
           PY
 
