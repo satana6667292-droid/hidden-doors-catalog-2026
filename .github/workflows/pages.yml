@@ -54,13 +54,13 @@ jobs:
           s=p.read_text()
           s=s.replace(
               '<script src="app.js"></script>',
-              '<script src="catalog-master.js?v=master13"></script>\n'
-              '  <script src="editor-pre.js?v=master13"></script>\n'
+              '<script src="catalog-master.js?v=master14"></script>\n'
+              '  <script src="editor-pre.js?v=master14"></script>\n'
               '  <script src="app.js"></script>\n'
-              '  <script src="resolved-corrections.js?v=master13"></script>\n'
-              '  <script src="editor-v4.js?v=master13"></script>\n'
-              '  <script src="editor-media.js?v=master13"></script>\n'
-              '  <script src="visual-fixes.js?v=master13"></script>'
+              '  <script src="resolved-corrections.js?v=master14"></script>\n'
+              '  <script src="editor-v4.js?v=master14"></script>\n'
+              '  <script src="editor-media.js?v=master14"></script>\n'
+              '  <script src="visual-fixes.js?v=master14"></script>'
           )
           p.write_text(s)
           Path("_site/index.html").write_text(Path("public-index.html").read_text())
