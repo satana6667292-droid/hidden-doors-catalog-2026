@@ -34,12 +34,12 @@ jobs:
           cat page-overrides/page-028.b64.part* | base64 -d > /tmp/page-028.webp
           cp /tmp/page-028.webp _site/assets/pages/page-028.webp
           cp /tmp/page-028.webp _site/assets/thumbs/page-028.webp
-          cp editor-pre.js editor-v4.js visual-fixes.js resolved-corrections.js _site/
+          cp editor-pre.js editor-v4.js editor-media.js visual-fixes.js resolved-corrections.js _site/
           python3 - <<'PY'
           from pathlib import Path
           p=Path("_site/index.html")
           s=p.read_text()
-          s=s.replace('<script src="app.js"></script>', '<script src="editor-pre.js"></script>\n  <script src="app.js"></script>\n  <script src="resolved-corrections.js"></script>\n  <script src="editor-v4.js"></script>\n  <script src="visual-fixes.js"></script>')
+          s=s.replace('<script src="app.js"></script>', '<script src="editor-pre.js"></script>\n  <script src="app.js"></script>\n  <script src="resolved-corrections.js"></script>\n  <script src="editor-v4.js"></script>\n  <script src="editor-media.js"></script>\n  <script src="visual-fixes.js"></script>')
           p.write_text(s)
           PY
 
