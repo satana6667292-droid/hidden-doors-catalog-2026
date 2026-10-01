@@ -36,20 +36,40 @@ jobs:
           mkdir -p /tmp/unpacked _site
           unzip -q /tmp/site-bundle.zip -d /tmp/unpacked
           cp -a /tmp/unpacked/hidden-doors-catalog-2026-site/. _site/
-          # Approved/corrected page overrides.
-          for n in 002 003 028; do
+
+          # Approved/corrected page assets.
+          for n in 002 003 028 032; do
             cat page-overrides/page-${n}.b64.part* | base64 -d > "/tmp/page-${n}.webp"
             cp "/tmp/page-${n}.webp" "_site/assets/pages/page-${n}.webp"
             cp "/tmp/page-${n}.webp" "_site/assets/thumbs/page-${n}.webp"
           done
-          cp editor-pre.js editor-v4.js editor-media.js visual-fixes.js resolved-corrections.js public-view.js public-view.css _site/
+
+          # Keep the old application only as the internal editor entrypoint.
+          cp _site/index.html _site/editor.html
+          cp catalog-master.js editor-pre.js editor-v4.js editor-media.js visual-fixes.js resolved-corrections.js public-view.js public-view.css public-index.html _site/
+
           python3 - <<'PY'
           from pathlib import Path
-          p=Path("_site/index.html")
+          p=Path("_site/editor.html")
           s=p.read_text()
-          s=s.replace('<script src="app.js"></script>', '<script src="editor-pre.js?v=20261001-fixes2"></script>\n  <script src="app.js"></script>\n  <script src="resolved-corrections.js?v=20261001-fixes2"></script>\n  <script src="editor-v4.js?v=20261001-fixes2"></script>\n  <script src="editor-media.js?v=20261001-fixes2"></script>\n  <link rel="stylesheet" href="public-view.css?v=20261001-public2">\n  <script src="public-view.js?v=20261001-public2"></script>\n  <script src="visual-fixes.js?v=20261001-fixes2"></script>')
+          s=s.replace(
+              '<script src="app.js"></script>',
+              '<script src="catalog-master.js?v=master12"></script>\n'
+              '  <script src="editor-pre.js?v=master12"></script>\n'
+              '  <script src="app.js"></script>\n'
+              '  <script src="resolved-corrections.js?v=master12"></script>\n'
+              '  <script src="editor-v4.js?v=master12"></script>\n'
+              '  <script src="editor-media.js?v=master12"></script>\n'
+              '  <script src="visual-fixes.js?v=master12"></script>'
+          )
           p.write_text(s)
+          Path("_site/index.html").write_text(Path("public-index.html").read_text())
           PY
+
+          test -s _site/index.html
+          test -s _site/editor.html
+          test -s _site/catalog-master.js
+          test -s _site/assets/pages/page-032.webp
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
