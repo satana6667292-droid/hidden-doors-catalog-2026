@@ -69,11 +69,7 @@
     </header>
 
     <main class="hdp-main">
-      <section class="hdp-toolbar">
-        <div>
-          <span class="hdp-kicker">HIDDEN DOORS / КАТАЛОГ 2026</span>
-          <h1 id="hdpTitle">Каталог дверей Hidden Doors</h1>
-        </div>
+      <section class="hdp-toolbar hdp-toolbar-compact">
         <div class="hdp-progress"><b id="hdpCount"></b><span id="hdpPages"></span></div>
       </section>
 
@@ -118,42 +114,56 @@
         <div class="hdp-live-rule"></div>
         <h2>Содержание</h2>
         <p class="hdp-live-subtitle">Навигация по каталогу Hidden Doors 2026</p>
+
         <div class="hdp-toc-grid">
-          <section>
+          <section class="hdp-toc-card">
             <div class="hdp-toc-head"><strong>36</strong><b>36 мм</b></div>
-            <div class="hdp-toc-row"><em>${numForSource('04')}</em><span>Размеры и комплектация</span></div>
-            <div class="hdp-toc-row"><em>${numForSource('05')}</em><span>Конструкция полотна и погонаж</span></div>
-            <div class="hdp-toc-row"><em>${range('06','13')}</em><span>MODENA · SIENA · LUCCA · AXIS</span></div>
-            <div class="hdp-toc-row"><em>${range('14','21')}</em><span>VECTOR · RHYTHM · ARC · FLUTE</span></div>
+            <div class="hdp-toc-rows">
+              <div class="hdp-toc-row"><em>${numForSource('04')}</em><span>Размеры и комплектация</span></div>
+              <div class="hdp-toc-row"><em>${numForSource('05')}</em><span>Конструкция полотна и погонаж</span></div>
+              <div class="hdp-toc-row"><em>${range('06','13')}</em><span>MODENA · SIENA · LUCCA · AXIS</span></div>
+              <div class="hdp-toc-row"><em>${range('14','21')}</em><span>VECTOR · RHYTHM · ARC · FLUTE</span></div>
+            </div>
           </section>
-          <section>
+
+          <section class="hdp-toc-card">
             <div class="hdp-toc-head"><strong>42</strong><b>42 мм</b></div>
-            <div class="hdp-toc-row"><em>${numForSource('22')}</em><span>Конструкция и размеры</span></div>
-            <div class="hdp-toc-row"><em>${numForSource('23')}</em><span>Покрытия и комплектация</span></div>
-            <div class="hdp-toc-row"><em>${range('26','27')}</em><span>Двустворчатая дверь</span></div>
-            <div class="hdp-toc-row"><em>${range('28','29')}</em><span>Откатная дверь</span></div>
+            <div class="hdp-toc-rows">
+              <div class="hdp-toc-row"><em>${numForSource('22')}</em><span>Конструкция и размеры</span></div>
+              <div class="hdp-toc-row"><em>${numForSource('23')}</em><span>Покрытия и комплектация</span></div>
+              <div class="hdp-toc-row"><em>${range('26','27')}</em><span>Двустворчатая дверь</span></div>
+              <div class="hdp-toc-row"><em>${range('28','29')}</em><span>Откатная дверь</span></div>
+            </div>
           </section>
-          <section>
+
+          <section class="hdp-toc-plain hdp-toc-wide">
             <div class="hdp-toc-head"><strong>59</strong><b>59 мм</b></div>
-            <div class="hdp-toc-row"><em>${numForSource('30')}</em><span>Конструкция, размеры и короб</span></div>
-            <div class="hdp-toc-row"><em>${numForSource('31')}</em><span>Интегрируемые материалы</span></div>
-            <div class="hdp-toc-row"><em>${numForSource('32')}</em><span>Зеркало и стекло</span></div>
-            <div class="hdp-toc-row"><em>${numForSource('33')}</em><span>Бамбук</span></div>
-            <div class="hdp-toc-row"><em>${numForSource('34')}</em><span>HPL-пластик</span></div>
-            <div class="hdp-toc-row"><em>${numForSource('35')}</em><span>Натуральный шпон</span></div>
-            <div class="hdp-toc-row"><em>${numForSource('36')}</em><span>Керамогранит</span></div>
-            <div class="hdp-toc-row"><em>${numForSource('37')}</em><span>Искусственный камень</span></div>
-            <div class="hdp-toc-row"><em>${numForSource('38')}</em><span>МДФ с фрезеровкой в плёнке</span></div>
-            <div class="hdp-toc-row"><em>${numForSource('39')}</em><span>Комбинированные решения</span></div>
+            <div class="hdp-toc-rows hdp-toc-rows-2col">
+              <div class="hdp-toc-row"><em>${numForSource('30')}</em><span>Конструкция, размеры и короб</span></div>
+              <div class="hdp-toc-row"><em>${numForSource('35')}</em><span>Натуральный шпон</span></div>
+              <div class="hdp-toc-row"><em>${numForSource('31')}</em><span>Интегрируемые материалы</span></div>
+              <div class="hdp-toc-row"><em>${numForSource('36')}</em><span>Керамогранит</span></div>
+              <div class="hdp-toc-row"><em>${numForSource('32')}</em><span>Зеркало и стекло</span></div>
+              <div class="hdp-toc-row"><em>${numForSource('37')}</em><span>Искусственный камень</span></div>
+              <div class="hdp-toc-row"><em>${numForSource('33')}</em><span>Бамбук</span></div>
+              <div class="hdp-toc-row"><em>${numForSource('38')}</em><span>МДФ с фрезеровкой в плёнке</span></div>
+              <div class="hdp-toc-row"><em>${numForSource('34')}</em><span>HPL-пластик</span></div>
+              <div class="hdp-toc-row"><em>${numForSource('39')}</em><span>Комбинированное решение</span></div>
+            </div>
           </section>
-          <section>
+
+          <section class="hdp-toc-plain">
             <div class="hdp-toc-head"><strong>SP</strong><b>Стеновые панели</b></div>
-            <div class="hdp-toc-row"><em>${numForSource('40')}</em><span>Материалы и конструктив</span></div>
-            <div class="hdp-toc-row"><em>${numForSource('41')}</em><span>Интерьерные решения</span></div>
-            <div class="hdp-toc-row"><em>${numForSource('42')}</em><span>Контакты / каталог / конфигуратор</span></div>
-            <div class="hdp-toc-row"><em>${numForSource('43')}</em><span>Задняя обложка</span></div>
+            <div class="hdp-toc-rows">
+              <div class="hdp-toc-row"><em>${numForSource('40')}</em><span>Материалы и конструктив</span></div>
+              <div class="hdp-toc-row"><em>${numForSource('41')}</em><span>Интерьерные решения</span></div>
+              <div class="hdp-toc-row"><em>${numForSource('42')}</em><span>Контакты / каталог / конфигуратор</span></div>
+              <div class="hdp-toc-row"><em>${numForSource('43')}</em><span>Задняя обложка</span></div>
+            </div>
           </section>
         </div>
+
+        <div class="hdp-live-note">Нумерация соответствует текущей сборке каталога.</div>
         <div class="hdp-live-page-no">03</div>
       </div>`;
   }
@@ -165,7 +175,7 @@
         <img src="${useThumb?thumbSrc(p):pageSrc(p)}" alt="${esc(p.title)}" loading="${useThumb?'lazy':'eager'}">
         ${shifted?`<span class="hdp-page-number-fix">${publicNum(p)}</span>`:''}
       </button>
-      <div class="hdp-page-caption"><span>${publicNum(p)}</span><b>${esc(p.title)}</b>${side?`<small>${side}</small>`:''}</div>
+      <div class="hdp-page-caption"><span>${publicNum(p)}</span><b>${esc(p.title)}</b></div>
     </article>`;
   }
 
@@ -174,7 +184,7 @@
       <button class="hdp-page-open" data-open="${pid(p)}" aria-label="Увеличить страницу ${publicNum(p)}">
         ${contentsHtml()}
       </button>
-      <div class="hdp-page-caption"><span>${publicNum(p)}</span><b>${esc(p.title)}</b>${side?`<small>${side}</small>`:''}</div>
+      <div class="hdp-page-caption"><span>${publicNum(p)}</span><b>${esc(p.title)}</b></div>
     </article>`;
   }
 
@@ -194,7 +204,7 @@
       const p=raw[Math.max(0,Math.min(mobileIndex,raw.length-1))];
       $('#hdpSpread').className='hdp-spread single mobile-single'+(pid(p)===1?' cover':'');
       $('#hdpSpread').innerHTML=pageMarkup(p,pid(p)===1?'обложка':'');
-      $('#hdpTitle').textContent=pid(p)===1?'Каталог Hidden Doors 2026':p.title;
+      void 0;
       $('#hdpCount').textContent=`${mobileIndex+1} / ${raw.length}`;
       $('#hdpPages').textContent=`страница ${publicNum(p)}`;
       $('#hdpPrev').disabled=mobileIndex===0;
@@ -205,7 +215,7 @@
       $('#hdpSpread').className='hdp-spread '+(single?'single':'double')+(s.cover?' cover':'');
       $('#hdpSpread').innerHTML=s.pages.map((p,i)=>pageMarkup(p,s.cover?'обложка':(i===0?'левая':'правая'))).join('');
       const titles=s.pages.map(p=>p.title).filter(Boolean);
-      $('#hdpTitle').textContent=s.cover?'Каталог Hidden Doors 2026':titles.join(' / ');
+      void 0;
       $('#hdpCount').textContent=`${spreadIndex+1} / ${spreads.length}`;
       $('#hdpPages').textContent=s.pages.length===1?`страница ${publicNum(s.pages[0])}`:`страницы ${s.pages.map(publicNum).join('–')}`;
       $('#hdpPrev').disabled=spreadIndex===0;
