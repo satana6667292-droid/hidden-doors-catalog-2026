@@ -6,10 +6,8 @@
 
   // Published catalog baseline (already applied corrections).
   pages.forEach((p,i)=>{p.order=i+1;p.included=true;p.pairWithNext=false;});
-  const hideLabels=new Set(['24','25']);
+  const hideLabels=new Set(['23A','24','25']);
   pages.forEach(p=>{if(hideLabels.has(p.label))p.included=false;});
-  const p28=pages.find(p=>p.label==='28'), p29=pages.find(p=>p.label==='29');
-  if(p28&&p29){const t=p28.order;p28.order=p29.order;p29.order=t;}
   pages.sort((a,b)=>a.order-b.order||a.physicalIndex-b.physicalIndex).forEach((p,i)=>p.order=i+1);
 
   // Build spread pattern from current physical order, not from page identity.
@@ -20,8 +18,8 @@
 
   window.CATALOG_EDITOR_BASE=clone(pages);
 
-  const KEY='hiddenDoorsCatalog2026.plan.v10';
-  const OLD_KEYS=['hiddenDoorsCatalog2026.plan.v9','hiddenDoorsCatalog2026.plan.v8','hiddenDoorsCatalog2026.plan.v7','hiddenDoorsCatalog2026.plan.v6','hiddenDoorsCatalog2026.plan.v5','hiddenDoorsCatalog2026.plan.v4','hiddenDoorsCatalog2026.plan.v3','hiddenDoorsCatalog2026.plan.v2'];
+  const KEY='hiddenDoorsCatalog2026.plan.v11';
+  const OLD_KEYS=['hiddenDoorsCatalog2026.plan.v10','hiddenDoorsCatalog2026.plan.v9','hiddenDoorsCatalog2026.plan.v8','hiddenDoorsCatalog2026.plan.v7','hiddenDoorsCatalog2026.plan.v6','hiddenDoorsCatalog2026.plan.v5','hiddenDoorsCatalog2026.plan.v4','hiddenDoorsCatalog2026.plan.v3','hiddenDoorsCatalog2026.plan.v2'];
   let plan=null;
   try{plan=JSON.parse(localStorage.getItem(KEY)||'null')}catch{}
   if(!plan){
@@ -29,7 +27,7 @@
       try{
         const old=JSON.parse(localStorage.getItem(k)||'null');
         if(old?.pages?.length){
-          plan={version:10,pages:old.pages.map(x=>{
+          plan={version:11,pages:old.pages.map(x=>{
             if(x.physicalIndex===28) return {...x,correctionType:'',correctionText:'',correctionId:''};
             return {...x};
           })};
