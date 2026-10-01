@@ -104,7 +104,14 @@ Before approval, every spread must pass a visual check at one common zoom:
 - page numbers share one baseline and outer-edge rule;
 - neither page appears visually “weaker” only because its typography was reduced.
 
-## 10. Approval workflow
+## 10. Font integrity and proof QA
+- Mechanical assembly must use a full Cyrillic-capable Manrope font file, never an embedded/subset font extracted from a PDF.
+- Missing glyphs, tofu squares, broken text or font fallback are release-blocking defects.
+- Before showing any spread for approval, render the final spread to PNG and inspect it visually at 100%.
+- Verify: Cyrillic text, digits, logo, page numbers, alignment, cropping and image quality.
+- If a source page already contains approved raster/vector typography, preserve that typography rather than retyping it unless the master template requires a deliberate typography change.
+
+## 11. Approval workflow
 1. Assemble mechanically using this master.
 2. Review as a spread.
 3. Approve page.
