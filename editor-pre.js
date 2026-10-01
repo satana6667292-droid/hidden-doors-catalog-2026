@@ -20,8 +20,8 @@
 
   window.CATALOG_EDITOR_BASE=clone(pages);
 
-  const KEY='hiddenDoorsCatalog2026.plan.v9';
-  const OLD_KEYS=['hiddenDoorsCatalog2026.plan.v8','hiddenDoorsCatalog2026.plan.v7','hiddenDoorsCatalog2026.plan.v6','hiddenDoorsCatalog2026.plan.v5','hiddenDoorsCatalog2026.plan.v4','hiddenDoorsCatalog2026.plan.v3','hiddenDoorsCatalog2026.plan.v2'];
+  const KEY='hiddenDoorsCatalog2026.plan.v10';
+  const OLD_KEYS=['hiddenDoorsCatalog2026.plan.v9','hiddenDoorsCatalog2026.plan.v8','hiddenDoorsCatalog2026.plan.v7','hiddenDoorsCatalog2026.plan.v6','hiddenDoorsCatalog2026.plan.v5','hiddenDoorsCatalog2026.plan.v4','hiddenDoorsCatalog2026.plan.v3','hiddenDoorsCatalog2026.plan.v2'];
   let plan=null;
   try{plan=JSON.parse(localStorage.getItem(KEY)||'null')}catch{}
   if(!plan){
@@ -29,7 +29,7 @@
       try{
         const old=JSON.parse(localStorage.getItem(k)||'null');
         if(old?.pages?.length){
-          plan={version:9,pages:old.pages.map(x=>{
+          plan={version:10,pages:old.pages.map(x=>{
             if(x.physicalIndex===28) return {...x,correctionType:'',correctionText:'',correctionId:''};
             return {...x};
           })};
@@ -45,7 +45,7 @@
     if(p.physicalIndex===28){p.status='approved';p.statusText='Согласовано';}
     const q=map.get(p.physicalIndex);
     if(!q)return;
-    ['order','included','pairWithNext','correctionType','correctionText','correctionId'].forEach(k=>{if(q[k]!==undefined)p[k]=q[k]});
+    ['order','included','pairWithNext','correctionType','correctionText','correctionId','images'].forEach(k=>{if(q[k]!==undefined)p[k]=q[k]});
   });
 
   const approved27=pages.find(p=>p.physicalIndex===28);if(approved27){approved27.status='approved';approved27.statusText='Согласовано';approved27.correctionType='';approved27.correctionText='';approved27.correctionId='';}
