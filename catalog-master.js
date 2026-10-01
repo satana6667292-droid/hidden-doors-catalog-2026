@@ -14,6 +14,9 @@
   // Published master. Stable source IDs stay unchanged; public numbering is derived.
   const hidden=new Set(['23A','24','25']);
   pages.forEach(p=>{ if(hidden.has(p.sourceLabel)) p.included=false; });
+  // Explicit approvals already fixed in the published catalog.
+  const approvedPhysical=new Set([28,32]);
+  pages.forEach(p=>{if(approvedPhysical.has(p.physicalIndex)){p.status='approved';p.statusText='Согласовано';}});
 
   const visible=pages.filter(p=>p.included);
   const cover=visible.find(p=>p.physicalIndex===1)||visible[0];
