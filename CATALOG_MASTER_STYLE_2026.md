@@ -25,15 +25,18 @@ Reference: approved page 02.
 - Rule is always on the SAME outer side as the logo.
 - Do not place the green rule near the spine if the logo is on the outer edge.
 
-## 3. Headings
+## 3. Typography and headings
 - H1 baseline zone is identical on every page.
 - H1 top: ~48 mm from page top.
-- H1: 22 pt, bold, Manrope-family geometry.
-- H2 / section title: ~10.8 pt, bold.
-- Body: ~8–8.5 pt regular.
-- Small captions / notes: ~6–7 pt.
+- H1: 22 pt, Manrope Bold.
+- H2 / section title: 12–14 pt, Manrope Bold.
+- Main body: 9 pt preferred; never below 8.5 pt.
+- Lists / contents / material names: 9 pt preferred; never below 8.5 pt.
+- Small captions / notes: 7 pt minimum.
+- Page number: 13 pt Manrope SemiBold / Bold.
 - Never resize H1 independently just to fill space.
 - Left and right pages in one spread must share the same H1 size and vertical start.
+- If content does not fit, first optimize grid, spacing and grouping. Reducing text below the minimum readable size is not an acceptable layout solution.
 
 ## 4. Page number
 - Page number is part of the fixed master shell; it must never float from page to page.
@@ -69,7 +72,36 @@ Reference: approved page 02.
 
 Each type gets one mechanical template. New pages must use the nearest existing template rather than inventing a new layout.
 
-## 7. Approval workflow
+## 7. Readability balance inside a spread
+- Both pages of one spread must have comparable visual readability and typographic weight.
+- One page must not look like a readable editorial page while the opposite page looks like a compressed reference sheet.
+- Main information must be readable at normal catalog viewing size without zoom.
+- The visual shell may be mirrored, but font hierarchy, scale and rhythm must remain consistent.
+- A page is considered non-compliant if its main text is visibly smaller than the neighboring page without a functional reason.
+
+## 8. Contents / navigation pages
+- Contents is an information page, not a technical micro-table.
+- Section headers: 12–14 pt minimum.
+- Navigation rows: 9 pt preferred; 8.5 pt absolute minimum.
+- Page numbers inside contents use the same readable minimum as navigation text.
+- Increase text size before adding decorative whitespace.
+- If the contents becomes crowded, use:
+  1. tighter internal spacing;
+  2. two-column grouping;
+  3. clearer section grouping;
+  4. shorter wording where meaning is preserved.
+- Do not solve overflow by shrinking primary navigation text below the readable minimum.
+
+## 9. Optical consistency check
+Before approval, every spread must pass a visual check at one common zoom:
+- logo scale matches;
+- green rule scale and vertical coordinate match;
+- H1 baseline matches;
+- main body/list text has comparable perceived size;
+- page numbers share one baseline and outer-edge rule;
+- neither page appears visually “weaker” only because its typography was reduced.
+
+## 10. Approval workflow
 1. Assemble mechanically using this master.
 2. Review as a spread.
 3. Approve page.
