@@ -58,6 +58,9 @@ Reference: approved page 02.
 - Reference implementation: spread 02–03 MASTER v3.
 
 ## 5. Spread logic
+- Review and approval are spread-first: after the single front cover, all catalog work is shown and evaluated only as two-page spreads.
+- Do not present isolated inner pages for visual approval unless the user explicitly asks for one.
+- Any page normalization must be checked against its facing page before approval.
 - A spread is designed as one composition.
 - Same logo scale, heading scale, top rhythm, margins and accents on both pages.
 - Content may differ, shell may not.
