@@ -30,6 +30,10 @@ jobs:
           mkdir -p /tmp/unpacked _site
           unzip -q /tmp/site-bundle.zip -d /tmp/unpacked
           cp -a /tmp/unpacked/hidden-doors-catalog-2026-site/. _site/
+          # Approved replacement: label 27 = physical asset page-028.webp
+          cat page-overrides/page-028.b64.part* | base64 -d > /tmp/page-028.webp
+          cp /tmp/page-028.webp _site/assets/pages/page-028.webp
+          cp /tmp/page-028.webp _site/assets/thumbs/page-028.webp
           cp editor-pre.js editor-v4.js visual-fixes.js resolved-corrections.js _site/
           python3 - <<'PY'
           from pathlib import Path
