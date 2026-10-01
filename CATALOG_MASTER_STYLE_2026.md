@@ -36,11 +36,23 @@ Reference: approved page 02.
 - Left and right pages in one spread must share the same H1 size and vertical start.
 
 ## 4. Page number
-- Bottom-right.
-- Brand green.
-- One fixed size and offset on every page.
+- Page number is part of the fixed master shell; it must never float from page to page.
+- Font: Manrope SemiBold / Bold.
+- Size: 13 pt.
+- Color: brand green #57C035.
+- Outer horizontal offset: 12 mm from the outer trim edge.
+- Bottom offset: 10 mm from the bottom trim edge.
+- Left page of a spread: number in the bottom-left OUTER corner, left-aligned.
+- Right page of a spread: number in the bottom-right OUTER corner, right-aligned.
+- Never place a page number near the spine.
+- All page numbers share one common vertical baseline.
+- At 300 dpi working raster (3509 × 2480 px):
+  - 12 mm = ~142 px.
+  - 10 mm = ~118 px.
+  - 13 pt = ~54 px nominal text height.
 - Public number is calculated from current included-page order.
 - Stable internal page ID does not change when pages are removed/reordered.
+- Reference implementation: spread 02–03 MASTER v3.
 
 ## 5. Spread logic
 - A spread is designed as one composition.
