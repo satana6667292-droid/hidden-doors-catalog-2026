@@ -1,22 +1,20 @@
 (()=>{
-  const raw=(window.CATALOG_EDITOR_BASE?.length?window.CATALOG_EDITOR_BASE:(window.CATALOG_DATA?.pages||[]))
-    .filter(p=>p.included!==false)
-    .sort((a,b)=>(a.order??999)-(b.order??999)||(a.physicalIndex??a.id)-(b.physicalIndex??b.id));
+  const master=window.CATALOG_PUBLIC_MASTER;
+  const raw=(master?.visiblePages||[]).slice();
   if(!raw.length)return;
 
-  const byId=new Map(raw.map(p=>[Number(p.physicalIndex??p.id),p]));
   const pid=p=>Number(p.physicalIndex??p.id);
-  const fullSrc=p=>{
-    const t=String(p.page||p.src||p.image||p.thumb||'');
-    return t.includes('/thumbs/')?t.replace('/thumbs/','/pages/'):t;
-  };
-  const thumbSrc=p=>p.thumb||fullSrc(p);
+  const pad=n=>String(n).padStart(3,'0');
+  const pageSrc=p=>`assets/pages/page-${pad(pid(p))}.webp`;
+  const thumbSrc=p=>`assets/thumbs/page-${pad(pid(p))}.webp`;
+  const byId=new Map(raw.map(p=>[pid(p),p]));
+  const publicNum=p=>p.catalogNumber||String((raw.indexOf(p)+1)).padStart(2,'0');
+  const isMobile=()=>window.matchMedia('(max-width:760px)').matches;
 
   function buildSpreads(){
-    const visible=[...raw];
-    const cover=visible.find(p=>pid(p)===1)||visible[0];
+    const cover=raw.find(p=>pid(p)===1)||raw[0];
     const out=[{cover:true,pages:[cover]}];
-    const rest=visible.filter(p=>p!==cover);
+    const rest=raw.filter(p=>p!==cover);
     for(let i=0;i<rest.length;){
       const p=rest[i];
       if(p.pairWithNext&&rest[i+1]){out.push({pages:[p,rest[i+1]]});i+=2}
@@ -25,17 +23,31 @@
     return out;
   }
   const spreads=buildSpreads();
+  const pageIndex=new Map(raw.map((p,i)=>[pid(p),i]));
+  const spreadIndexByPage=new Map();
+  spreads.forEach((s,i)=>s.pages.forEach(p=>spreadIndexByPage.set(pid(p),i)));
 
+  const originalNumber=p=>parseInt(String(p.sourceLabel??p.label),10);
   const sections=[
-    {key:'all',label:'Все',test:()=>true},
-    {key:'36',label:'36 мм',test:p=>{const n=parseInt(p.label,10);return n>=4&&n<=21}},
-    {key:'42',label:'42 мм',test:p=>{const n=parseInt(p.label,10);return n>=22&&n<=29}},
-    {key:'59',label:'59 мм',test:p=>{const n=parseInt(p.label,10);return n>=30&&n<=39}},
-    {key:'panels',label:'Панели',test:p=>{const n=parseInt(p.label,10);return n>=40&&n<=41}},
-    {key:'final',label:'Контакты',test:p=>{const n=parseInt(p.label,10);return n>=42}}
+    {key:'36',label:'36 мм',test:p=>{const n=originalNumber(p);return n>=4&&n<=21}},
+    {key:'42',label:'42 мм',test:p=>{const n=originalNumber(p);return n>=22&&n<=29}},
+    {key:'59',label:'59 мм',test:p=>{const n=originalNumber(p);return n>=30&&n<=39}},
+    {key:'panels',label:'Панели',test:p=>{const n=originalNumber(p);return n>=40&&n<=41}},
+    {key:'final',label:'Контакты',test:p=>{const n=originalNumber(p);return n>=42}}
   ];
 
-  let spreadIndex=0, mode='spread', zoom=1;
+  const numForSource=label=>{
+    const p=raw.find(x=>String(x.sourceLabel??x.label)===String(label));
+    return p?publicNum(p):'—';
+  };
+  const range=(a,b)=>`${numForSource(a)}–${numForSource(b)}`;
+
+  let spreadIndex=0;
+  let mobileIndex=0;
+  let mode='spread';
+  let lightScale=1;
+  let lightBaseWidth=0;
+  let lightPage=null;
 
   document.body.classList.add('hd-public-view');
   const root=document.createElement('div');
@@ -43,8 +55,8 @@
   root.innerHTML=`
     <header class="hdp-header">
       <a class="hdp-brand" href="../" aria-label="Hidden Doors — на главную">
-        <span class="hdp-mark">H</span>
-        <span><b>HIDDEN DOORS</b><small>Каталог 2026</small></span>
+        <img src="../assets/logo.png" alt="Hidden Doors" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <span class="hdp-brand-fallback"><b>HIDDEN DOORS</b><small>Каталог 2026</small></span>
       </a>
       <nav class="hdp-sections" aria-label="Разделы каталога"></nav>
       <div class="hdp-head-actions">
@@ -53,7 +65,6 @@
           <button data-mode="spread" class="active">Развороты</button>
           <button data-mode="grid">Все страницы</button>
         </div>
-        <button class="hdp-editor" id="hdpEditor">Редактор</button>
       </div>
     </header>
 
@@ -67,9 +78,9 @@
       </section>
 
       <section id="hdpSpreadView" class="hdp-spread-view">
-        <button class="hdp-arrow prev" id="hdpPrev" aria-label="Предыдущий разворот">‹</button>
+        <button class="hdp-arrow prev" id="hdpPrev" aria-label="Назад">‹</button>
         <div class="hdp-spread" id="hdpSpread"></div>
-        <button class="hdp-arrow next" id="hdpNext" aria-label="Следующий разворот">›</button>
+        <button class="hdp-arrow next" id="hdpNext" aria-label="Вперёд">›</button>
       </section>
 
       <section id="hdpGridView" class="hdp-grid-view hidden"></section>
@@ -83,110 +94,299 @@
 
     <div class="hdp-lightbox hidden" id="hdpLightbox">
       <div class="hdp-lightbox-head">
-        <div><b id="hdpLightTitle">Страница</b><span>Кликните и перетаскивайте область при увеличении</span></div>
+        <div><b id="hdpLightTitle">Страница</b><span>Увеличивайте и перетаскивайте страницу мышкой</span></div>
         <div class="hdp-light-tools">
-          <button id="hdpZoomOut">−</button><span id="hdpZoomText">100%</span><button id="hdpZoomIn">＋</button>
-          <button id="hdpZoomFit">По размеру</button><button id="hdpLightClose" class="close">×</button>
+          <button id="hdpZoomOut">−</button><span id="hdpZoomText">Вписано</span><button id="hdpZoomIn">＋</button>
+          <button id="hdpZoomActual">100%</button><button id="hdpZoomFit">Вписать</button><button id="hdpLightClose" class="close">×</button>
         </div>
       </div>
-      <div class="hdp-light-stage"><img id="hdpLightImg" alt=""></div>
+      <div class="hdp-light-stage" id="hdpLightStage">
+        <img id="hdpLightImg" alt="">
+        <div id="hdpLightLive" class="hdp-light-live hidden"></div>
+      </div>
     </div>`;
   document.body.appendChild(root);
 
   const $=q=>root.querySelector(q);
   const $$=q=>[...root.querySelectorAll(q)];
+  const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
-  function spreadForPage(page){
-    return spreads.findIndex(s=>s.pages.some(p=>pid(p)===pid(page)));
+  function contentsHtml(){
+    return `
+      <div class="hdp-live-sheet hdp-toc-sheet">
+        <div class="hdp-live-logo"><img src="../assets/logo.png" alt="Hidden Doors"></div>
+        <div class="hdp-live-rule"></div>
+        <h2>Содержание</h2>
+        <p class="hdp-live-subtitle">Навигация по каталогу Hidden Doors 2026</p>
+        <div class="hdp-toc-grid">
+          <section>
+            <div class="hdp-toc-head"><strong>36</strong><b>36 мм</b></div>
+            <div class="hdp-toc-row"><em>${numForSource('04')}</em><span>Размеры и комплектация</span></div>
+            <div class="hdp-toc-row"><em>${numForSource('05')}</em><span>Конструкция полотна и погонаж</span></div>
+            <div class="hdp-toc-row"><em>${range('06','13')}</em><span>MODENA · SIENA · LUCCA · AXIS</span></div>
+            <div class="hdp-toc-row"><em>${range('14','21')}</em><span>VECTOR · RHYTHM · ARC · FLUTE</span></div>
+          </section>
+          <section>
+            <div class="hdp-toc-head"><strong>42</strong><b>42 мм</b></div>
+            <div class="hdp-toc-row"><em>${numForSource('22')}</em><span>Конструкция и размеры</span></div>
+            <div class="hdp-toc-row"><em>${numForSource('23')}</em><span>Покрытия и комплектация</span></div>
+            <div class="hdp-toc-row"><em>${range('26','27')}</em><span>Двустворчатая дверь</span></div>
+            <div class="hdp-toc-row"><em>${range('28','29')}</em><span>Откатная дверь</span></div>
+          </section>
+          <section>
+            <div class="hdp-toc-head"><strong>59</strong><b>59 мм</b></div>
+            <div class="hdp-toc-row"><em>${numForSource('30')}</em><span>Конструкция, размеры и короб</span></div>
+            <div class="hdp-toc-row"><em>${numForSource('31')}</em><span>Интегрируемые материалы</span></div>
+            <div class="hdp-toc-row"><em>${numForSource('32')}</em><span>Зеркало и стекло</span></div>
+            <div class="hdp-toc-row"><em>${numForSource('33')}</em><span>Бамбук</span></div>
+            <div class="hdp-toc-row"><em>${numForSource('34')}</em><span>HPL-пластик</span></div>
+            <div class="hdp-toc-row"><em>${numForSource('35')}</em><span>Натуральный шпон</span></div>
+            <div class="hdp-toc-row"><em>${numForSource('36')}</em><span>Керамогранит</span></div>
+            <div class="hdp-toc-row"><em>${numForSource('37')}</em><span>Искусственный камень</span></div>
+            <div class="hdp-toc-row"><em>${numForSource('38')}</em><span>МДФ с фрезеровкой в плёнке</span></div>
+            <div class="hdp-toc-row"><em>${numForSource('39')}</em><span>Комбинированные решения</span></div>
+          </section>
+          <section>
+            <div class="hdp-toc-head"><strong>SP</strong><b>Стеновые панели</b></div>
+            <div class="hdp-toc-row"><em>${numForSource('40')}</em><span>Материалы и конструктив</span></div>
+            <div class="hdp-toc-row"><em>${numForSource('41')}</em><span>Интерьерные решения</span></div>
+            <div class="hdp-toc-row"><em>${numForSource('42')}</em><span>Контакты / каталог / конфигуратор</span></div>
+            <div class="hdp-toc-row"><em>${numForSource('43')}</em><span>Задняя обложка</span></div>
+          </section>
+        </div>
+        <div class="hdp-live-page-no">03</div>
+      </div>`;
   }
-  function currentSpread(){return spreads[Math.max(0,Math.min(spreadIndex,spreads.length-1))]}
-  function pageMarkup(p,side=''){
+
+  function imagePageMarkup(p,side='',useThumb=false){
+    const shifted=String(p.sourceLabel??p.label)!==String(publicNum(p));
     return `<article class="hdp-page" data-id="${pid(p)}">
-      <button class="hdp-page-open" data-open="${pid(p)}" aria-label="Увеличить страницу ${p.label}">
-        <img src="${fullSrc(p)}" alt="${String(p.title||'').replace(/"/g,'&quot;')}" loading="eager">
+      <button class="hdp-page-open" data-open="${pid(p)}" aria-label="Увеличить страницу ${publicNum(p)}">
+        <img src="${useThumb?thumbSrc(p):pageSrc(p)}" alt="${esc(p.title)}" loading="${useThumb?'lazy':'eager'}">
+        ${shifted?`<span class="hdp-page-number-fix">${publicNum(p)}</span>`:''}
       </button>
-      <div class="hdp-page-caption"><span>${p.label}</span><b>${p.title||''}</b>${side?`<small>${side}</small>`:''}</div>
+      <div class="hdp-page-caption"><span>${publicNum(p)}</span><b>${esc(p.title)}</b>${side?`<small>${side}</small>`:''}</div>
     </article>`;
   }
-  function renderSpread(){
-    const s=currentSpread();
-    const single=s.pages.length===1;
-    $('#hdpSpread').className='hdp-spread '+(single?'single':'double')+(s.cover?' cover':'');
-    $('#hdpSpread').innerHTML=s.pages.map((p,i)=>pageMarkup(p,s.cover?'обложка':(i===0?'левая':'правая'))).join('');
-    const titles=s.pages.map(p=>p.title).filter(Boolean);
-    $('#hdpTitle').textContent=s.cover?'Каталог Hidden Doors 2026':titles.join(' / ');
-    $('#hdpCount').textContent=`${spreadIndex+1} / ${spreads.length}`;
-    $('#hdpPages').textContent=s.pages.length===1?`страница ${s.pages[0].label}`:`страницы ${s.pages.map(p=>p.label).join('–')}`;
-    $('#hdpPrev').disabled=spreadIndex===0;
-    $('#hdpNext').disabled=spreadIndex===spreads.length-1;
+
+  function livePageMarkup(p,side=''){
+    return `<article class="hdp-page hdp-page-live" data-id="${pid(p)}">
+      <button class="hdp-page-open" data-open="${pid(p)}" aria-label="Увеличить страницу ${publicNum(p)}">
+        ${contentsHtml()}
+      </button>
+      <div class="hdp-page-caption"><span>${publicNum(p)}</span><b>${esc(p.title)}</b>${side?`<small>${side}</small>`:''}</div>
+    </article>`;
+  }
+
+  function pageMarkup(p,side='',useThumb=false){
+    return pid(p)===3?livePageMarkup(p,side):imagePageMarkup(p,side,useThumb);
+  }
+
+  function currentSpread(){return spreads[Math.max(0,Math.min(spreadIndex,spreads.length-1))]}
+  function syncIndexesFromPage(p){
+    mobileIndex=pageIndex.get(pid(p))??0;
+    spreadIndex=spreadIndexByPage.get(pid(p))??0;
+  }
+
+  function renderReading(){
+    if(mode!=='spread')return;
+    if(isMobile()){
+      const p=raw[Math.max(0,Math.min(mobileIndex,raw.length-1))];
+      $('#hdpSpread').className='hdp-spread single mobile-single'+(pid(p)===1?' cover':'');
+      $('#hdpSpread').innerHTML=pageMarkup(p,pid(p)===1?'обложка':'');
+      $('#hdpTitle').textContent=pid(p)===1?'Каталог Hidden Doors 2026':p.title;
+      $('#hdpCount').textContent=`${mobileIndex+1} / ${raw.length}`;
+      $('#hdpPages').textContent=`страница ${publicNum(p)}`;
+      $('#hdpPrev').disabled=mobileIndex===0;
+      $('#hdpNext').disabled=mobileIndex===raw.length-1;
+    }else{
+      const s=currentSpread();
+      const single=s.pages.length===1;
+      $('#hdpSpread').className='hdp-spread '+(single?'single':'double')+(s.cover?' cover':'');
+      $('#hdpSpread').innerHTML=s.pages.map((p,i)=>pageMarkup(p,s.cover?'обложка':(i===0?'левая':'правая'))).join('');
+      const titles=s.pages.map(p=>p.title).filter(Boolean);
+      $('#hdpTitle').textContent=s.cover?'Каталог Hidden Doors 2026':titles.join(' / ');
+      $('#hdpCount').textContent=`${spreadIndex+1} / ${spreads.length}`;
+      $('#hdpPages').textContent=s.pages.length===1?`страница ${publicNum(s.pages[0])}`:`страницы ${s.pages.map(publicNum).join('–')}`;
+      $('#hdpPrev').disabled=spreadIndex===0;
+      $('#hdpNext').disabled=spreadIndex===spreads.length-1;
+    }
     bindPageOpen();
   }
+
   function renderGrid(){
-    $('#hdpGridView').innerHTML=raw.map(p=>pageMarkup(p)).join('');
+    $('#hdpGridView').innerHTML=raw.map(p=>pageMarkup(p,'',true)).join('');
     bindPageOpen();
   }
+
+  function jumpTo(page){
+    syncIndexesFromPage(page);
+    mode='spread';
+    setModeButtons();
+    renderReading();
+    closeDrawer();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
   function renderSections(){
     const nav=$('.hdp-sections');
-    nav.innerHTML=sections.filter(x=>x.key!=='all').map(x=>`<button data-section="${x.key}">${x.label}</button>`).join('');
+    nav.innerHTML=sections.map(x=>`<button data-section="${x.key}">${x.label}</button>`).join('');
     nav.onclick=e=>{
       const b=e.target.closest('[data-section]');if(!b)return;
       const sec=sections.find(x=>x.key===b.dataset.section);
-      const page=raw.find(sec.test);if(!page)return;
-      mode='spread';setModeButtons();spreadIndex=Math.max(0,spreadForPage(page));renderSpread();
-      window.scrollTo({top:0,behavior:'smooth'});
+      const page=raw.find(sec.test);if(page)jumpTo(page);
     };
   }
+
   function renderDrawer(){
-    const groups=sections.filter(s=>s.key!=='all').map(sec=>({sec,pages:raw.filter(sec.test)})).filter(g=>g.pages.length);
+    const groups=sections.map(sec=>({sec,pages:raw.filter(sec.test)})).filter(g=>g.pages.length);
     $('#hdpDrawerList').innerHTML=groups.map(g=>`<section><h3>${g.sec.label}</h3>${g.pages.map(p=>`
       <button class="hdp-drawer-item" data-jump="${pid(p)}">
-        <img src="${thumbSrc(p)}" alt="">
-        <span><b>${p.label} · ${p.title}</b><small>Открыть страницу</small></span>
+        ${pid(p)===3?'<span class="hdp-drawer-live">Содержание</span>':`<img src="${thumbSrc(p)}" alt="">`}
+        <span><b>${publicNum(p)} · ${esc(p.title)}</b><small>Открыть страницу</small></span>
       </button>`).join('')}</section>`).join('');
     $('#hdpDrawerList').onclick=e=>{
       const b=e.target.closest('[data-jump]');if(!b)return;
-      const page=byId.get(Number(b.dataset.jump));if(!page)return;
-      spreadIndex=Math.max(0,spreadForPage(page));mode='spread';setModeButtons();renderSpread();closeDrawer();
+      const p=byId.get(Number(b.dataset.jump));if(p)jumpTo(p);
     };
   }
+
   function openDrawer(){root.classList.add('drawer-open');$('#hdpDrawer').setAttribute('aria-hidden','false')}
   function closeDrawer(){root.classList.remove('drawer-open');$('#hdpDrawer').setAttribute('aria-hidden','true')}
+
   function setModeButtons(){
     $$('.hdp-view-toggle button').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
     $('#hdpSpreadView').classList.toggle('hidden',mode!=='spread');
     $('#hdpGridView').classList.toggle('hidden',mode!=='grid');
-    if(mode==='grid')renderGrid();else renderSpread();
+    if(mode==='grid')renderGrid();else renderReading();
+  }
+
+  function fitWidth(){
+    const stage=$('#hdpLightStage');
+    const pad=isMobile()?24:56;
+    return Math.max(300,Math.min(stage.clientWidth-pad,(stage.clientHeight-pad)*(297/210)));
+  }
+
+  function updateLightWidth(label){
+    if(!lightPage||pid(lightPage)===3)return;
+    const img=$('#hdpLightImg');
+    img.style.width=`${Math.round(lightBaseWidth*lightScale)}px`;
+    $('#hdpZoomText').textContent=label||`${Math.round(lightScale*100)}%`;
+  }
+
+  function setLightFit(){
+    if(!lightPage||pid(lightPage)===3)return;
+    lightBaseWidth=fitWidth();lightScale=1;
+    updateLightWidth('Вписано');
+    const stage=$('#hdpLightStage');stage.scrollLeft=0;stage.scrollTop=0;
+  }
+
+  function setLightActual(){
+    const img=$('#hdpLightImg');
+    if(!lightPage||pid(lightPage)===3||!img.naturalWidth)return;
+    lightBaseWidth=img.naturalWidth;lightScale=1;updateLightWidth('100%');
   }
 
   function openLight(page){
-    zoom=1;
-    $('#hdpLightTitle').textContent=`${page.label} · ${page.title}`;
-    $('#hdpLightImg').src=fullSrc(page);
+    lightPage=page;
+    $('#hdpLightTitle').textContent=`${publicNum(page)} · ${page.title}`;
     $('#hdpLightbox').classList.remove('hidden');
     document.body.classList.add('hdp-no-scroll');
-    updateZoom();
-  }
-  function closeLight(){$('#hdpLightbox').classList.add('hidden');document.body.classList.remove('hdp-no-scroll')}
-  function updateZoom(){
-    $('#hdpZoomText').textContent=`${Math.round(zoom*100)}%`;
-    $('#hdpLightImg').style.width=`${Math.round(Math.min(2400,1200*zoom))}px`;
-  }
-  function bindPageOpen(){
-    $$('[data-open]').forEach(b=>b.onclick=()=>{const p=byId.get(Number(b.dataset.open));if(p)openLight(p)});
+    const img=$('#hdpLightImg'),live=$('#hdpLightLive');
+    if(pid(page)===3){
+      img.classList.add('hidden');live.classList.remove('hidden');live.innerHTML=contentsHtml();
+      $('#hdpZoomText').textContent='HTML';
+      $('#hdpZoomOut').disabled=true;$('#hdpZoomIn').disabled=true;$('#hdpZoomActual').disabled=true;$('#hdpZoomFit').disabled=true;
+    }else{
+      live.classList.add('hidden');live.innerHTML='';img.classList.remove('hidden');
+      $('#hdpZoomOut').disabled=false;$('#hdpZoomIn').disabled=false;$('#hdpZoomActual').disabled=false;$('#hdpZoomFit').disabled=false;
+      img.onload=()=>requestAnimationFrame(setLightFit);
+      img.src=pageSrc(page);
+      if(img.complete)requestAnimationFrame(setLightFit);
+    }
   }
 
-  $('#hdpPrev').onclick=()=>{if(spreadIndex>0){spreadIndex--;renderSpread();window.scrollTo({top:0,behavior:'smooth'})}};
-  $('#hdpNext').onclick=()=>{if(spreadIndex<spreads.length-1){spreadIndex++;renderSpread();window.scrollTo({top:0,behavior:'smooth'})}};
-  $('#hdpContents').onclick=openDrawer;$('#hdpDrawerClose').onclick=closeDrawer;$('#hdpShade').onclick=closeDrawer;
+  function closeLight(){
+    $('#hdpLightbox').classList.add('hidden');
+    document.body.classList.remove('hdp-no-scroll');
+    lightPage=null;
+  }
+
+  function bindPageOpen(){
+    $$('[data-open]').forEach(b=>b.onclick=()=>{
+      const p=byId.get(Number(b.dataset.open));if(p)openLight(p);
+    });
+  }
+
+  function go(delta){
+    if(mode!=='spread')return;
+    if(isMobile()){
+      const ni=mobileIndex+delta;if(ni<0||ni>=raw.length)return;
+      mobileIndex=ni;spreadIndex=spreadIndexByPage.get(pid(raw[mobileIndex]))??spreadIndex;
+    }else{
+      const ni=spreadIndex+delta;if(ni<0||ni>=spreads.length)return;
+      spreadIndex=ni;mobileIndex=pageIndex.get(pid(spreads[spreadIndex].pages[0]))??mobileIndex;
+    }
+    renderReading();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  $('#hdpPrev').onclick=()=>go(-1);
+  $('#hdpNext').onclick=()=>go(1);
+  $('#hdpContents').onclick=openDrawer;
+  $('#hdpDrawerClose').onclick=closeDrawer;
+  $('#hdpShade').onclick=closeDrawer;
   $$('.hdp-view-toggle button').forEach(b=>b.onclick=()=>{mode=b.dataset.mode;setModeButtons()});
-  $('#hdpEditor').onclick=()=>document.querySelector('#catalogEditorButton')?.click();
-  $('#hdpLightClose').onclick=closeLight;$('#hdpZoomOut').onclick=()=>{zoom=Math.max(.5,zoom-.25);updateZoom()};$('#hdpZoomIn').onclick=()=>{zoom=Math.min(2.5,zoom+.25);updateZoom()};$('#hdpZoomFit').onclick=()=>{zoom=1;updateZoom()};
+  $('#hdpLightClose').onclick=closeLight;
+  $('#hdpZoomOut').onclick=()=>{lightScale=Math.max(.35,lightScale-.25);updateLightWidth()};
+  $('#hdpZoomIn').onclick=()=>{lightScale=Math.min(4,lightScale+.25);updateLightWidth()};
+  $('#hdpZoomFit').onclick=setLightFit;
+  $('#hdpZoomActual').onclick=setLightActual;
+
+  // Drag-to-pan in the enlarged view.
+  const stage=$('#hdpLightStage');
+  let pan=null;
+  stage.addEventListener('pointerdown',e=>{
+    if($('#hdpLightbox').classList.contains('hidden')||pid(lightPage||{})===3)return;
+    pan={x:e.clientX,y:e.clientY,left:stage.scrollLeft,top:stage.scrollTop};
+    stage.setPointerCapture?.(e.pointerId);
+    stage.classList.add('dragging');
+  });
+  stage.addEventListener('pointermove',e=>{
+    if(!pan)return;
+    stage.scrollLeft=pan.left-(e.clientX-pan.x);
+    stage.scrollTop=pan.top-(e.clientY-pan.y);
+  });
+  const stopPan=()=>{pan=null;stage.classList.remove('dragging')};
+  stage.addEventListener('pointerup',stopPan);stage.addEventListener('pointercancel',stopPan);
+
+  // Swipe on mobile reading mode.
+  let swipeX=null;
+  $('#hdpSpread').addEventListener('pointerdown',e=>{if(isMobile())swipeX=e.clientX});
+  $('#hdpSpread').addEventListener('pointerup',e=>{
+    if(swipeX==null||!isMobile())return;
+    const dx=e.clientX-swipeX;swipeX=null;
+    if(Math.abs(dx)>60)go(dx<0?1:-1);
+  });
+
   document.addEventListener('keydown',e=>{
     if(!$('#hdpLightbox').classList.contains('hidden')){if(e.key==='Escape')closeLight();return}
     if(root.classList.contains('drawer-open')&&e.key==='Escape'){closeDrawer();return}
-    if(mode==='spread'&&e.key==='ArrowLeft'&&spreadIndex>0){spreadIndex--;renderSpread()}
-    if(mode==='spread'&&e.key==='ArrowRight'&&spreadIndex<spreads.length-1){spreadIndex++;renderSpread()}
+    if(mode==='spread'&&e.key==='ArrowLeft')go(-1);
+    if(mode==='spread'&&e.key==='ArrowRight')go(1);
   });
 
-  renderSections();renderDrawer();renderSpread();
+  let lastMobile=isMobile();
+  window.addEventListener('resize',()=>{
+    const now=isMobile();
+    if(now!==lastMobile){
+      const p=now?(currentSpread()?.pages?.[0]||raw[0]):raw[mobileIndex]||raw[0];
+      syncIndexesFromPage(p);lastMobile=now;renderReading();
+    }
+    if(!$('#hdpLightbox').classList.contains('hidden')&&lightPage&&pid(lightPage)!==3&&$('#hdpZoomText').textContent==='Вписано')setLightFit();
+  });
+
+  renderSections();
+  renderDrawer();
+  renderReading();
 })();
