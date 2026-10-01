@@ -134,6 +134,7 @@
 
   function decorate(){
     ensureUi();
+    $('.ce-addon-approve,.ce-addon-approval-panel').forEach(x=>x.remove());
     $$('.ce-card').forEach(card=>{
       const id=Number(card.dataset.id),img=card.querySelector('.ce-img');
       if(img)img.classList.add('ce-media-clickable');
