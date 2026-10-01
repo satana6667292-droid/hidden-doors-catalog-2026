@@ -45,7 +45,7 @@
     if(p.physicalIndex===28){p.status='approved';p.statusText='Согласовано';}
     const q=map.get(p.physicalIndex);
     if(!q)return;
-    ['order','included','pairWithNext','correctionType','correctionText','correctionId','images'].forEach(k=>{if(q[k]!==undefined)p[k]=q[k]});
+    ['order','included','pairWithNext','correctionType','correctionText','correctionId','images','status','statusText'].forEach(k=>{if(q[k]!==undefined)p[k]=q[k]});
   });
 
   let mediaDraft=null;try{mediaDraft=JSON.parse(localStorage.getItem('hiddenDoorsCatalog2026.media.v1')||'null')}catch{}
