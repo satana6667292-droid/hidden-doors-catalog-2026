@@ -48,6 +48,11 @@
     ['order','included','pairWithNext','correctionType','correctionText','correctionId','images'].forEach(k=>{if(q[k]!==undefined)p[k]=q[k]});
   });
 
+  let mediaDraft=null;try{mediaDraft=JSON.parse(localStorage.getItem('hiddenDoorsCatalog2026.media.v1')||'null')}catch{}
+  if(mediaDraft?.pages){
+    pages.forEach(p=>{const m=mediaDraft.pages[String(p.physicalIndex)];if(m?.images)p.images=m.images});
+  }
+
   const approved27=pages.find(p=>p.physicalIndex===28);if(approved27){approved27.status='approved';approved27.statusText='Согласовано';approved27.correctionType='';approved27.correctionText='';approved27.correctionId='';}
 
   // Sanity: cover stays first; unique order; hidden applied pages stay hidden unless user explicitly restored them in v7 state.
