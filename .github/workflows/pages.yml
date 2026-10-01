@@ -24,6 +24,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Validate editor scripts
+        run: |
+          node --check editor-pre.js
+          node --check editor-v4.js
+          node --check editor-media.js
+
       - name: Assemble catalog site
         run: |
           cat bundle/site-bundle.part* > /tmp/site-bundle.zip
