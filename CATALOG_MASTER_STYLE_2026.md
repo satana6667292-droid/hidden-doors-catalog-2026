@@ -48,20 +48,21 @@ Reference: approved page 02.
 - Color: brand green #57C035.
 - **Optical digit height:** 4.6 mm. At the 300 dpi working raster this is **54 px of visible glyph height**.
 - Do not rely only on the nominal font-size value: the rendered digit bounding box must match the 4.6 mm / 54 px optical height of the reference spread.
-- Outer horizontal offset: **12 mm from the outer trim edge**.
-- Bottom offset: **10 mm from the bottom trim edge to the visible bottom of the digits**.
+- Page-number placement is controlled globally by the master template, never per page.
+- Left-page number anchor: **3% of page width from the left trim edge**.
+- Right-page number anchor: **5.1% of page width from the right trim edge** (this intentionally moves the right-page number slightly left for optical balance).
+- Bottom offset: **1.8% of page height**; the number must sit fully below the lowest content/card rule.
 - Left page of a spread: the visible digit bounding box starts 12 mm from the left outer edge; left-aligned.
 - Right page of a spread: the visible digit bounding box ends 12 mm from the right outer edge; right-aligned.
 - Never place a page number near the spine.
 - All page numbers share one common bottom line and optical height.
 - Page numbers must never sit on a visible patch, badge, white box or gray rectangle. If a legacy number is masked, the mask must match the actual local footer tone so the correction is optically invisible.
 - At 300 dpi working raster (3509 × 2480 px):
-  - 12 mm = **142 px**.
-  - 10 mm = **118 px**.
   - visible digit height = **54 px**.
-  - visible digit top = **2308 px** and bottom = **2362 px** on a 2480 px page.
-  - left-page visible number starts at **x = 142 px**.
-  - right-page visible number ends at **x = 3367 px**.
+  - left-page anchor ≈ **105 px** from the left edge.
+  - right-page anchor ≈ **179 px** from the right edge.
+  - bottom offset ≈ **45 px**; visible digit top is approximately **2381 px**.
+- If a source page contains a legacy page/spread number, mask only the legacy text itself in the footer band. The mask must stay **below the lowest card/content rule** so no horizontal line is interrupted.
 - Before approval, compare page numbers against the approved 02–03 spread at the same scale. Any visible size mismatch is a master-style violation.
 - Public number is calculated from current included-page order.
 - Stable internal page ID does not change when pages are removed/reordered.
