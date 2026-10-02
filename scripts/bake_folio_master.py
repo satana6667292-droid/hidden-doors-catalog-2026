@@ -30,10 +30,10 @@ HIDDEN_PHYSICAL = {24, 25, 26}
 # Audited historical folio rectangles as percentages of page width/height.
 # Multiple rectangles are allowed when a page accumulated more than one historical number.
 LEGACY_MASKS = {
-    2:[(3.5,92.4,3.4,1.9)],
+    2:[(3.4,92.0,3.6,3.8)],
     3:[(92.7,91.8,4.0,4.5)],
     4:[(3.5,92.4,3.4,3.1)],
-    5:[(93.2,92.4,3.5,2.1)],
+    5:[(93.2,92.0,3.2,3.8)],
 
     7:[(93.6,96.0,4.9,2.8)],
     8:[(2.5,96.0,4.9,2.8)],
