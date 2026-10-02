@@ -54,6 +54,7 @@ Reference: approved page 02.
 - Right page of a spread: the visible digit bounding box ends 12 mm from the right outer edge; right-aligned.
 - Never place a page number near the spine.
 - All page numbers share one common bottom line and optical height.
+- Page numbers must never sit on a visible patch, badge, white box or gray rectangle. If a legacy number is masked, the mask must match the actual local footer tone so the correction is optically invisible.
 - At 300 dpi working raster (3509 × 2480 px):
   - 12 mm = **142 px**.
   - 10 mm = **118 px**.
