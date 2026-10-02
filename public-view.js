@@ -175,6 +175,29 @@
           const side=p?.legacyFolioSide;
           if(repair&&side&&repair.dataset.done!=='1'){
             const W=img.naturalWidth,H=img.naturalHeight;
+
+            // Legacy spread ranges on collection model pages are light gray, not green.
+            // Their footer corner is intentionally blank, so repair that tiny fixed zone
+            // by copying neighboring pixels from the same page.
+            if(isCollectionPage(p)&&p.templateType==='collection-models'){
+              const tw=Math.round(W*.12),th=Math.round(H*.045);
+              const tx=side==='right'?W-tw:0;
+              const ty=H-th;
+              const shift=Math.round(W*.13);
+              const srcX=side==='right'?Math.max(0,tx-shift):Math.min(W-tw,tx+shift);
+
+              repair.width=tw;repair.height=th;
+              repair.style.left=`${tx/W*100}%`;
+              repair.style.top=`${ty/H*100}%`;
+              repair.style.width=`${tw/W*100}%`;
+              repair.style.height=`${th/H*100}%`;
+              const rctx=repair.getContext('2d');
+              rctx.drawImage(img,srcX,ty,tw,th,0,0,tw,th);
+              repair.dataset.done='1';
+              sheet.dataset.bgReady='1';
+              return;
+            }
+
             const sx0=Math.round(W*(side==='right'?.80:0));
             const sy0=Math.round(H*.90);
             const sw=Math.round(W*.20),sh=Math.round(H*.10);
