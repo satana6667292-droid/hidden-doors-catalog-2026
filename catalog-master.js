@@ -52,10 +52,10 @@
   // Every legacy source folio is explicitly masked before the single global folio is rendered.
   // Rectangles are percentages of the page and are deliberately tight so content rules are untouched.
   const legacyFolioMasks={
-    2:[{x:2.1,y:93.8,w:4.4,h:4.8}],
+    2:[{x:3.5,y:92.4,w:3.4,h:1.9}],
     3:[{x:92.7,y:91.8,w:4.0,h:4.5}],
-    4:[{x:95.2,y:94.6,w:3.8,h:4.2}],
-    5:[{x:94.0,y:93.7,w:3.9,h:3.7}],
+    4:[{x:3.5,y:92.4,w:3.4,h:3.1}],
+    5:[{x:93.2,y:92.4,w:3.5,h:2.1}],
 
     7:[{x:93.6,y:96.0,w:4.9,h:2.8}],
     8:[{x:2.5,y:96.0,w:4.9,h:2.8}],
@@ -66,9 +66,9 @@
     19:[{x:93.6,y:96.0,w:4.9,h:2.8}],
     20:[{x:2.5,y:96.0,w:4.9,h:2.8}],
 
-    27:[{x:83.7,y:95.8,w:3.5,h:3.7}],
+    27:[{x:84.2,y:86.5,w:2.8,h:2.3}],
     28:[{x:94.0,y:93.6,w:3.8,h:3.6}],
-    29:[{x:83.7,y:92.8,w:3.5,h:3.7}],
+    29:[{x:84.2,y:84.1,w:2.8,h:2.4}],
     30:[{x:92.3,y:94.5,w:3.9,h:3.7}],
     31:[{x:92.6,y:93.1,w:3.9,h:3.8}],
     32:[{x:93.9,y:93.0,w:3.6,h:3.7}],
@@ -85,7 +85,7 @@
       {x:94.8,y:94.2,w:3.7,h:2.5},
       {x:96.3,y:96.2,w:3.7,h:3.6}
     ],
-    40:[{x:94.0,y:93.6,w:3.8,h:3.6}],
+    40:[{x:92.4,y:91.7,w:3.5,h:2.2}],
     41:[
       {x:92.8,y:91.8,w:2.8,h:2.6},
       {x:96.3,y:96.1,w:3.7,h:3.6}
@@ -122,6 +122,6 @@
     pages,
     visiblePages:visible,
     byPhysical,
-    version:'2026-10-02-folio-master-v1-clean'
+    version:'2026-10-02-folio-master-v1-baked-audit2'
   };
 })();
