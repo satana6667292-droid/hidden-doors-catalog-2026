@@ -5,7 +5,7 @@
 
   const pid=p=>Number(p.physicalIndex??p.id);
   const pad=n=>String(n).padStart(3,'0');
-  const ASSET_V='master14';
+  const ASSET_V='master21';
   const pageSrc=p=>`assets/pages/page-${pad(pid(p))}.webp?v=${ASSET_V}`;
   const thumbSrc=p=>`assets/thumbs/page-${pad(pid(p))}.webp?v=${ASSET_V}`;
   const byId=new Map(raw.map(p=>[pid(p),p]));
@@ -110,19 +110,9 @@
 
   const isCollectionPage=p=>String(p?.templateType||'').startsWith('collection-');
 
-  const folioMarkup=p=>{
-    if(!p?.showFolio)return '';
-    const side=p.folioSide==='right'?'right':'left';
-    const halo=p.folioHalo?' halo':'';
-    return `<span class="hdp-folio side-${side}${halo}" aria-hidden="true">${publicNum(p)}</span>`;
-  };
-
-  const legacyRepairMarkup=p=>{
-    const masks=Array.isArray(p?.legacyFolioMasks)?p.legacyFolioMasks:[];
-    if(!masks.length)return '';
-    return masks.map((m,i)=>`<canvas class="hdp-legacy-folio-repair" data-legacy-repair="${pid(p)}" data-mask-index="${i}" aria-hidden="true"
-      style="left:${m.x}%;top:${m.y}%;width:${m.w}%;height:${m.h}%"></canvas>`).join('');
-  };
+  // FOLIO MASTER v1 is baked into generated page assets during deploy.
+  const folioMarkup=()=>''; 
+  const legacyRepairMarkup=()=>''; 
 
   function standardSheetMarkup(p,useThumb=false){
     const src=useThumb?thumbSrc(p):pageSrc(p);
@@ -151,60 +141,23 @@
   function prepareFolioSheets(scope=root){
     scope.querySelectorAll?.('[data-folio-sheet]').forEach(sheet=>{
       const img=sheet.querySelector('.hdp-sheet-base');
-      if(!img)return;
-
+      if(!img||!sheet.classList.contains('hdp-collection-sheet'))return;
       const apply=()=>{
         if(!img.naturalWidth||!img.naturalHeight)return;
-        const p=byId.get(Number(sheet.dataset.folioSheet));
-
         try{
-          // Collection logo cleanup samples the actual paper tone.
-          if(sheet.classList.contains('hdp-collection-sheet')){
-            const c=document.createElement('canvas');c.width=1;c.height=1;
-            const ctx=c.getContext('2d',{willReadFrequently:true});
-            const side=sheet.classList.contains('side-right')?'right':'left';
-            const topX=Math.round(img.naturalWidth*(side==='left'?.35:.65));
-            const topY=Math.round(img.naturalHeight*.055);
-            ctx.drawImage(img,topX,topY,1,1,0,0,1,1);
-            const [tr,tg,tb]=ctx.getImageData(0,0,1,1).data;
-            sheet.style.setProperty('--collection-bg',`rgb(${tr} ${tg} ${tb})`);
-          }
-
-          // Legacy folios were audited page-by-page.
-          // Each tiny repair canvas copies pixels from the same footer row nearby,
-          // so old numbers disappear without a visible white/gray rectangle or broken rule.
-          const masks=Array.isArray(p?.legacyFolioMasks)?p.legacyFolioMasks:[];
-          sheet.querySelectorAll('[data-legacy-repair]').forEach(repair=>{
-            if(repair.dataset.done==='1')return;
-            const idx=Number(repair.dataset.maskIndex||0);
-            const m=masks[idx];
-            if(!m)return;
-
-            const W=img.naturalWidth,H=img.naturalHeight;
-            const tx=Math.max(0,Math.round(W*(m.x/100)));
-            const ty=Math.max(0,Math.round(H*(m.y/100)));
-            const tw=Math.max(1,Math.min(W-tx,Math.round(W*(m.w/100))));
-            const th=Math.max(1,Math.min(H-ty,Math.round(H*(m.h/100))));
-
-            // Sample far enough away that a second historical number cannot leak into the patch.
-            const center=(m.x+m.w/2)/100;
-            const shift=Math.max(Math.round(W*.055),tw*2);
-            let srcX=center>.5?tx-shift:tx+shift;
-            srcX=Math.max(0,Math.min(W-tw,srcX));
-
-            repair.width=tw;repair.height=th;
-            const rctx=repair.getContext('2d');
-            rctx.clearRect(0,0,tw,th);
-            rctx.drawImage(img,srcX,ty,tw,th,0,0,tw,th);
-            repair.dataset.done='1';
-          });
-
+          const c=document.createElement('canvas');c.width=1;c.height=1;
+          const ctx=c.getContext('2d',{willReadFrequently:true});
+          const side=sheet.classList.contains('side-right')?'right':'left';
+          const topX=Math.round(img.naturalWidth*(side==='left'?.35:.65));
+          const topY=Math.round(img.naturalHeight*.055);
+          ctx.drawImage(img,topX,topY,1,1,0,0,1,1);
+          const [tr,tg,tb]=ctx.getImageData(0,0,1,1).data;
+          sheet.style.setProperty('--collection-bg',`rgb(${tr} ${tg} ${tb})`);
           sheet.dataset.bgReady='1';
         }catch(_){
           sheet.style.setProperty('--collection-bg','#f8f7f3');
         }
       };
-
       if(img.complete)apply(); else img.addEventListener('load',apply,{once:true});
     });
   }
