@@ -135,14 +135,28 @@
           const c=document.createElement('canvas');c.width=1;c.height=1;
           const ctx=c.getContext('2d',{willReadFrequently:true});
           const side=sheet.classList.contains('side-right')?'right':'left';
-          const sx=Math.max(0,Math.min(img.naturalWidth-1,Math.round(img.naturalWidth*(side==='left'?.35:.65))));
-          const sy=Math.max(0,Math.min(img.naturalHeight-1,Math.round(img.naturalHeight*.055)));
-          ctx.drawImage(img,sx,sy,1,1,0,0,1,1);
-          const [rr,gg,bb]=ctx.getImageData(0,0,1,1).data;
-          sheet.style.setProperty('--collection-bg',`rgb(${rr} ${gg} ${bb})`);
+
+          // Logo mask samples the actual top paper tone.
+          const topX=Math.round(img.naturalWidth*(side==='left'?.35:.65));
+          const topY=Math.round(img.naturalHeight*.055);
+          ctx.clearRect(0,0,1,1);
+          ctx.drawImage(img,topX,topY,1,1,0,0,1,1);
+          const [tr,tg,tb]=ctx.getImageData(0,0,1,1).data;
+          sheet.style.setProperty('--collection-bg',`rgb(${tr} ${tg} ${tb})`);
+
+          // Legacy-number mask samples the footer itself, not the top of the page.
+          // This prevents the visible white/gray rectangle around the new number.
+          const footX=Math.round(img.naturalWidth*(side==='left'?.08:.92));
+          const footY=Math.round(img.naturalHeight*.972);
+          ctx.clearRect(0,0,1,1);
+          ctx.drawImage(img,footX,footY,1,1,0,0,1,1);
+          const [fr,fg,fb]=ctx.getImageData(0,0,1,1).data;
+          sheet.style.setProperty('--collection-footer-bg',`rgb(${fr} ${fg} ${fb})`);
+
           sheet.dataset.bgReady='1';
         }catch(_){
           sheet.style.setProperty('--collection-bg','#f8f7f3');
+          sheet.style.setProperty('--collection-footer-bg','#f8f7f3');
         }
       };
       if(img.complete)apply(); else img.addEventListener('load',apply,{once:true});
