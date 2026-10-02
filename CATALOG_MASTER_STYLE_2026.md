@@ -38,6 +38,9 @@ Reference: approved page 02.
 - Left and right pages in one spread must share the same H1 size, weight and vertical start.
 - H1 is always Manrope Bold; do not mix Regular and Bold H1 inside one spread.
 - If content does not fit, first optimize grid, spacing and grouping. Reducing text below the minimum readable size is not an acceptable layout solution.
+- H1 safety zone: title edits may affect only the H1/subtitle area; they must never crop or erase the first content heading below.
+- Minimum optical gap from the visible bottom of H1 to the next content heading: 8 mm.
+- After any H1 normalization, verify the first row of content headings for intact glyphs and full ascenders/descenders.
 
 ## 4. Page number
 - Page number is part of the fixed master shell; it must never float or be resized from page to page.
