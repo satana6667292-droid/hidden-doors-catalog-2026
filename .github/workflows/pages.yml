@@ -38,7 +38,7 @@ jobs:
           cp -a /tmp/unpacked/hidden-doors-catalog-2026-site/. _site/
 
           # Approved/corrected page assets.
-          for n in 002 003 028 032; do
+          for n in 002 003 004 005 028 032; do
             cat page-overrides/page-${n}.b64.part* | base64 -d > "/tmp/page-${n}.webp"
             cp "/tmp/page-${n}.webp" "_site/assets/pages/page-${n}.webp"
             cp "/tmp/page-${n}.webp" "_site/assets/thumbs/page-${n}.webp"
