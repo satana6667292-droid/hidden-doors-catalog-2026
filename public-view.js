@@ -110,53 +110,80 @@
 
   const isCollectionPage=p=>String(p?.templateType||'').startsWith('collection-');
 
+  const folioMarkup=p=>{
+    if(!p?.showFolio)return '';
+    const side=p.folioSide==='right'?'right':'left';
+    const halo=p.folioHalo?' halo':'';
+    return `<span class="hdp-folio side-${side}${halo}" aria-hidden="true">${publicNum(p)}</span>`;
+  };
+
+  const legacyMaskMarkup=p=>{
+    const side=p?.legacyFolioSide;
+    if(!side)return '';
+    const wide=isCollectionPage(p)&&p.templateType==='collection-models'?' wide':'';
+    return `<span class="hdp-legacy-folio-mask side-${side}${wide}" aria-hidden="true"></span>`;
+  };
+
+  function standardSheetMarkup(p,useThumb=false){
+    const src=useThumb?thumbSrc(p):pageSrc(p);
+    return `<div class="hdp-folio-sheet hdp-standard-sheet" data-folio-sheet="${pid(p)}">
+      <img class="hdp-sheet-base" src="${src}" alt="${esc(p.title)}" loading="${useThumb?'lazy':'eager'}" crossorigin="anonymous">
+      ${legacyMaskMarkup(p)}
+      ${folioMarkup(p)}
+    </div>`;
+  }
+
   function collectionSheetMarkup(p,useThumb=false){
     const side=p.templateSide==='right'?'right':'left';
     const models=p.templateType==='collection-models';
     const src=useThumb?thumbSrc(p):pageSrc(p);
     const techMask=p.hideTopNote?'<span class="hdp-collection-tech-mask" aria-hidden="true"></span>':'';
-    return `<div class="hdp-collection-sheet ${models?'is-models':'is-interior'} side-${side}" data-collection-sheet="${pid(p)}">
-      <img class="hdp-collection-base" src="${src}" alt="${esc(p.title)}" loading="${useThumb?'lazy':'eager'}" crossorigin="anonymous">
+    return `<div class="hdp-folio-sheet hdp-collection-sheet ${models?'is-models':'is-interior'} side-${side}" data-folio-sheet="${pid(p)}" data-collection-sheet="${pid(p)}">
+      <img class="hdp-sheet-base hdp-collection-base" src="${src}" alt="${esc(p.title)}" loading="${useThumb?'lazy':'eager'}" crossorigin="anonymous">
       ${models?`<span class="hdp-collection-logo-mask" aria-hidden="true"></span>
-      <img class="hdp-collection-logo" src="../assets/logo.png" alt="" aria-hidden="true">
-      <span class="hdp-collection-legacy-number-mask" aria-hidden="true"></span>`:''}
+      <img class="hdp-collection-logo" src="../assets/logo.png" alt="" aria-hidden="true">`:''}
+      ${legacyMaskMarkup(p)}
       ${techMask}
-      <span class="hdp-collection-number" aria-hidden="true">${publicNum(p)}</span>
+      ${folioMarkup(p)}
     </div>`;
   }
 
-  function sampleCollectionBackground(scope=root){
-    scope.querySelectorAll?.('[data-collection-sheet]').forEach(sheet=>{
-      const img=sheet.querySelector('.hdp-collection-base');
+  function sampleFolioBackgrounds(scope=root){
+    scope.querySelectorAll?.('[data-folio-sheet]').forEach(sheet=>{
+      const img=sheet.querySelector('.hdp-sheet-base');
       if(!img||sheet.dataset.bgReady==='1')return;
       const apply=()=>{
         if(!img.naturalWidth||!img.naturalHeight)return;
         try{
           const c=document.createElement('canvas');c.width=1;c.height=1;
           const ctx=c.getContext('2d',{willReadFrequently:true});
-          const side=sheet.classList.contains('side-right')?'right':'left';
 
-          // Logo mask samples the actual top paper tone.
-          const topX=Math.round(img.naturalWidth*(side==='left'?.35:.65));
-          const topY=Math.round(img.naturalHeight*.055);
-          ctx.clearRect(0,0,1,1);
-          ctx.drawImage(img,topX,topY,1,1,0,0,1,1);
-          const [tr,tg,tb]=ctx.getImageData(0,0,1,1).data;
-          sheet.style.setProperty('--collection-bg',`rgb(${tr} ${tg} ${tb})`);
+          // Paper tone for collection logo cleanup.
+          if(sheet.classList.contains('hdp-collection-sheet')){
+            const side=sheet.classList.contains('side-right')?'right':'left';
+            const topX=Math.round(img.naturalWidth*(side==='left'?.35:.65));
+            const topY=Math.round(img.naturalHeight*.055);
+            ctx.clearRect(0,0,1,1);
+            ctx.drawImage(img,topX,topY,1,1,0,0,1,1);
+            const [tr,tg,tb]=ctx.getImageData(0,0,1,1).data;
+            sheet.style.setProperty('--collection-bg',`rgb(${tr} ${tg} ${tb})`);
+          }
 
-          // Legacy-number mask samples the footer itself, not the top of the page.
-          // This prevents the visible white/gray rectangle around the new number.
-          const footX=Math.round(img.naturalWidth*(side==='left'?.08:.92));
-          const footY=Math.round(img.naturalHeight*.972);
-          ctx.clearRect(0,0,1,1);
-          ctx.drawImage(img,footX,footY,1,1,0,0,1,1);
-          const [fr,fg,fb]=ctx.getImageData(0,0,1,1).data;
-          sheet.style.setProperty('--collection-footer-bg',`rgb(${fr} ${fg} ${fb})`);
+          const mask=sheet.querySelector('.hdp-legacy-folio-mask');
+          if(mask){
+            const side=mask.classList.contains('side-right')?'right':'left';
+            const fx=Math.round(img.naturalWidth*(side==='left'?.025:.975));
+            const fy=Math.round(img.naturalHeight*.985);
+            ctx.clearRect(0,0,1,1);
+            ctx.drawImage(img,fx,fy,1,1,0,0,1,1);
+            const [fr,fg,fb]=ctx.getImageData(0,0,1,1).data;
+            sheet.style.setProperty('--folio-mask-bg',`rgb(${fr} ${fg} ${fb})`);
+          }
 
           sheet.dataset.bgReady='1';
         }catch(_){
           sheet.style.setProperty('--collection-bg','#f8f7f3');
-          sheet.style.setProperty('--collection-footer-bg','#f8f7f3');
+          sheet.style.setProperty('--folio-mask-bg','#f8f7f3');
         }
       };
       if(img.complete)apply(); else img.addEventListener('load',apply,{once:true});
@@ -225,19 +252,10 @@
   }
 
   function imagePageMarkup(p,side='',useThumb=false){
-    if(isCollectionPage(p)){
-      return `<article class="hdp-page hdp-page-collection" data-id="${pid(p)}">
-        <button class="hdp-page-open hdp-collection-open" data-open="${pid(p)}" aria-label="Увеличить страницу ${publicNum(p)}">
-          ${collectionSheetMarkup(p,useThumb)}
-        </button>
-        <div class="hdp-page-caption"><span>${publicNum(p)}</span><b>${esc(p.title)}</b></div>
-      </article>`;
-    }
-    const shifted=String(p.sourceLabel??p.label)!==String(publicNum(p));
-    return `<article class="hdp-page" data-id="${pid(p)}">
+    const sheet=isCollectionPage(p)?collectionSheetMarkup(p,useThumb):standardSheetMarkup(p,useThumb);
+    return `<article class="hdp-page${isCollectionPage(p)?' hdp-page-collection':''}" data-id="${pid(p)}">
       <button class="hdp-page-open" data-open="${pid(p)}" aria-label="Увеличить страницу ${publicNum(p)}">
-        <img src="${useThumb?thumbSrc(p):pageSrc(p)}" alt="${esc(p.title)}" loading="${useThumb?'lazy':'eager'}">
-        ${shifted?`<span class="hdp-page-number-fix">${publicNum(p)}</span>`:''}
+        ${sheet}
       </button>
       <div class="hdp-page-caption"><span>${publicNum(p)}</span><b>${esc(p.title)}</b></div>
     </article>`;
@@ -286,13 +304,13 @@
       $('#hdpNext').disabled=spreadIndex===spreads.length-1;
     }
     bindPageOpen();
-    sampleCollectionBackground(root);
+    sampleFolioBackgrounds(root);
   }
 
   function renderGrid(){
     $('#hdpGridView').innerHTML=raw.map(p=>pageMarkup(p,'',true)).join('');
     bindPageOpen();
-    sampleCollectionBackground(root);
+    sampleFolioBackgrounds(root);
   }
 
   function jumpTo(page){
@@ -345,7 +363,7 @@
 
   function updateLightWidth(label){
     if(!lightPage)return;
-    const target=isCollectionPage(lightPage)?$('#hdpLightLive'):$('#hdpLightImg');
+    const target=$('#hdpLightLive');
     target.style.width=`${Math.round(lightBaseWidth*lightScale)}px`;
     $('#hdpZoomText').textContent=label||`${Math.round(lightScale*100)}%`;
   }
@@ -359,12 +377,7 @@
 
   function setLightActual(){
     if(!lightPage)return;
-    if(isCollectionPage(lightPage)){
-      lightBaseWidth=1400;lightScale=1;updateLightWidth('100%');return;
-    }
-    const img=$('#hdpLightImg');
-    if(!img.naturalWidth)return;
-    lightBaseWidth=img.naturalWidth;lightScale=1;updateLightWidth('100%');
+    lightBaseWidth=1400;lightScale=1;updateLightWidth('100%');
   }
 
   function openLight(page){
@@ -373,22 +386,12 @@
     $('#hdpLightbox').classList.remove('hidden');
     document.body.classList.add('hdp-no-scroll');
     const img=$('#hdpLightImg'),live=$('#hdpLightLive');
-
-    if(isCollectionPage(page)){
-      img.classList.add('hidden');img.removeAttribute('src');
-      live.classList.remove('hidden');
-      live.innerHTML=collectionSheetMarkup(page,false);
-      $('#hdpZoomOut').disabled=false;$('#hdpZoomIn').disabled=false;$('#hdpZoomActual').disabled=false;$('#hdpZoomFit').disabled=false;
-      lightBaseWidth=fitWidth();lightScale=1;updateLightWidth('Вписано');
-      requestAnimationFrame(()=>sampleCollectionBackground(live));
-      return;
-    }
-
-    live.classList.add('hidden');live.innerHTML='';img.classList.remove('hidden');
+    img.classList.add('hidden');img.removeAttribute('src');
+    live.classList.remove('hidden');
+    live.innerHTML=isCollectionPage(page)?collectionSheetMarkup(page,false):standardSheetMarkup(page,false);
     $('#hdpZoomOut').disabled=false;$('#hdpZoomIn').disabled=false;$('#hdpZoomActual').disabled=false;$('#hdpZoomFit').disabled=false;
-    img.onload=()=>requestAnimationFrame(setLightFit);
-    img.src=pageSrc(page);
-    if(img.complete)requestAnimationFrame(setLightFit);
+    lightBaseWidth=fitWidth();lightScale=1;updateLightWidth('Вписано');
+    requestAnimationFrame(()=>sampleFolioBackgrounds(live));
   }
 
   function closeLight(){
