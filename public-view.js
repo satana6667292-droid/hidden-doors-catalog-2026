@@ -108,6 +108,47 @@
   const $$=q=>[...root.querySelectorAll(q)];
   const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 
+  const isCollectionPage=p=>String(p?.templateType||'').startsWith('collection-');
+
+  function collectionSheetMarkup(p,useThumb=false){
+    const side=p.templateSide==='right'?'right':'left';
+    const models=p.templateType==='collection-models';
+    const src=useThumb?thumbSrc(p):pageSrc(p);
+    const techMask=p.hideTopNote?'<span class="hdp-collection-tech-mask" aria-hidden="true"></span>':'';
+    return `<div class="hdp-collection-sheet ${models?'is-models':'is-interior'} side-${side}" data-collection-sheet="${pid(p)}">
+      <img class="hdp-collection-base" src="${src}" alt="${esc(p.title)}" loading="${useThumb?'lazy':'eager'}" crossorigin="anonymous">
+      ${models?`<span class="hdp-collection-logo-mask" aria-hidden="true"></span>
+      <img class="hdp-collection-logo" src="../assets/logo.png" alt="" aria-hidden="true">
+      <span class="hdp-collection-legacy-number-mask" aria-hidden="true"></span>`:''}
+      ${techMask}
+      <span class="hdp-collection-number" aria-hidden="true">${publicNum(p)}</span>
+    </div>`;
+  }
+
+  function sampleCollectionBackground(scope=root){
+    scope.querySelectorAll?.('[data-collection-sheet]').forEach(sheet=>{
+      const img=sheet.querySelector('.hdp-collection-base');
+      if(!img||sheet.dataset.bgReady==='1')return;
+      const apply=()=>{
+        if(!img.naturalWidth||!img.naturalHeight)return;
+        try{
+          const c=document.createElement('canvas');c.width=1;c.height=1;
+          const ctx=c.getContext('2d',{willReadFrequently:true});
+          const side=sheet.classList.contains('side-right')?'right':'left';
+          const sx=Math.max(0,Math.min(img.naturalWidth-1,Math.round(img.naturalWidth*(side==='left'?.35:.65))));
+          const sy=Math.max(0,Math.min(img.naturalHeight-1,Math.round(img.naturalHeight*.055)));
+          ctx.drawImage(img,sx,sy,1,1,0,0,1,1);
+          const [rr,gg,bb]=ctx.getImageData(0,0,1,1).data;
+          sheet.style.setProperty('--collection-bg',`rgb(${rr} ${gg} ${bb})`);
+          sheet.dataset.bgReady='1';
+        }catch(_){
+          sheet.style.setProperty('--collection-bg','#f8f7f3');
+        }
+      };
+      if(img.complete)apply(); else img.addEventListener('load',apply,{once:true});
+    });
+  }
+
   function contentsHtml(){
     return `
       <div class="hdp-live-sheet hdp-toc-sheet">
@@ -170,6 +211,14 @@
   }
 
   function imagePageMarkup(p,side='',useThumb=false){
+    if(isCollectionPage(p)){
+      return `<article class="hdp-page hdp-page-collection" data-id="${pid(p)}">
+        <button class="hdp-page-open hdp-collection-open" data-open="${pid(p)}" aria-label="Увеличить страницу ${publicNum(p)}">
+          ${collectionSheetMarkup(p,useThumb)}
+        </button>
+        <div class="hdp-page-caption"><span>${publicNum(p)}</span><b>${esc(p.title)}</b></div>
+      </article>`;
+    }
     const shifted=String(p.sourceLabel??p.label)!==String(publicNum(p));
     return `<article class="hdp-page" data-id="${pid(p)}">
       <button class="hdp-page-open" data-open="${pid(p)}" aria-label="Увеличить страницу ${publicNum(p)}">
@@ -223,11 +272,13 @@
       $('#hdpNext').disabled=spreadIndex===spreads.length-1;
     }
     bindPageOpen();
+    sampleCollectionBackground(root);
   }
 
   function renderGrid(){
     $('#hdpGridView').innerHTML=raw.map(p=>pageMarkup(p,'',true)).join('');
     bindPageOpen();
+    sampleCollectionBackground(root);
   }
 
   function jumpTo(page){
@@ -280,8 +331,8 @@
 
   function updateLightWidth(label){
     if(!lightPage)return;
-    const img=$('#hdpLightImg');
-    img.style.width=`${Math.round(lightBaseWidth*lightScale)}px`;
+    const target=isCollectionPage(lightPage)?$('#hdpLightLive'):$('#hdpLightImg');
+    target.style.width=`${Math.round(lightBaseWidth*lightScale)}px`;
     $('#hdpZoomText').textContent=label||`${Math.round(lightScale*100)}%`;
   }
 
@@ -293,8 +344,12 @@
   }
 
   function setLightActual(){
+    if(!lightPage)return;
+    if(isCollectionPage(lightPage)){
+      lightBaseWidth=1400;lightScale=1;updateLightWidth('100%');return;
+    }
     const img=$('#hdpLightImg');
-    if(!lightPage||!img.naturalWidth)return;
+    if(!img.naturalWidth)return;
     lightBaseWidth=img.naturalWidth;lightScale=1;updateLightWidth('100%');
   }
 
@@ -304,6 +359,17 @@
     $('#hdpLightbox').classList.remove('hidden');
     document.body.classList.add('hdp-no-scroll');
     const img=$('#hdpLightImg'),live=$('#hdpLightLive');
+
+    if(isCollectionPage(page)){
+      img.classList.add('hidden');img.removeAttribute('src');
+      live.classList.remove('hidden');
+      live.innerHTML=collectionSheetMarkup(page,false);
+      $('#hdpZoomOut').disabled=false;$('#hdpZoomIn').disabled=false;$('#hdpZoomActual').disabled=false;$('#hdpZoomFit').disabled=false;
+      lightBaseWidth=fitWidth();lightScale=1;updateLightWidth('Вписано');
+      requestAnimationFrame(()=>sampleCollectionBackground(live));
+      return;
+    }
+
     live.classList.add('hidden');live.innerHTML='';img.classList.remove('hidden');
     $('#hdpZoomOut').disabled=false;$('#hdpZoomIn').disabled=false;$('#hdpZoomActual').disabled=false;$('#hdpZoomFit').disabled=false;
     img.onload=()=>requestAnimationFrame(setLightFit);
