@@ -117,18 +117,17 @@
     return `<span class="hdp-folio side-${side}${halo}" aria-hidden="true">${publicNum(p)}</span>`;
   };
 
-  const legacyMaskMarkup=p=>{
+  const legacyRepairMarkup=p=>{
     const side=p?.legacyFolioSide;
     if(!side)return '';
-    const wide=isCollectionPage(p)&&p.templateType==='collection-models'?' wide':'';
-    return `<span class="hdp-legacy-folio-mask side-${side}${wide}" aria-hidden="true"></span>`;
+    return `<canvas class="hdp-legacy-folio-repair side-${side}" data-legacy-repair="${pid(p)}" aria-hidden="true"></canvas>`;
   };
 
   function standardSheetMarkup(p,useThumb=false){
     const src=useThumb?thumbSrc(p):pageSrc(p);
     return `<div class="hdp-folio-sheet hdp-standard-sheet" data-folio-sheet="${pid(p)}">
       <img class="hdp-sheet-base" src="${src}" alt="${esc(p.title)}" loading="${useThumb?'lazy':'eager'}" crossorigin="anonymous">
-      ${legacyMaskMarkup(p)}
+      ${legacyRepairMarkup(p)}
       ${folioMarkup(p)}
     </div>`;
   }
@@ -142,50 +141,93 @@
       <img class="hdp-sheet-base hdp-collection-base" src="${src}" alt="${esc(p.title)}" loading="${useThumb?'lazy':'eager'}" crossorigin="anonymous">
       ${models?`<span class="hdp-collection-logo-mask" aria-hidden="true"></span>
       <img class="hdp-collection-logo" src="../assets/logo.png" alt="" aria-hidden="true">`:''}
-      ${legacyMaskMarkup(p)}
+      ${legacyRepairMarkup(p)}
       ${techMask}
       ${folioMarkup(p)}
     </div>`;
   }
 
-  function sampleFolioBackgrounds(scope=root){
+  function prepareFolioSheets(scope=root){
     scope.querySelectorAll?.('[data-folio-sheet]').forEach(sheet=>{
       const img=sheet.querySelector('.hdp-sheet-base');
-      if(!img||sheet.dataset.bgReady==='1')return;
+      if(!img)return;
+
       const apply=()=>{
         if(!img.naturalWidth||!img.naturalHeight)return;
-        try{
-          const c=document.createElement('canvas');c.width=1;c.height=1;
-          const ctx=c.getContext('2d',{willReadFrequently:true});
+        const p=byId.get(Number(sheet.dataset.folioSheet));
 
-          // Paper tone for collection logo cleanup.
+        try{
+          // Collection logo cleanup still samples the actual paper tone.
           if(sheet.classList.contains('hdp-collection-sheet')){
+            const c=document.createElement('canvas');c.width=1;c.height=1;
+            const ctx=c.getContext('2d',{willReadFrequently:true});
             const side=sheet.classList.contains('side-right')?'right':'left';
             const topX=Math.round(img.naturalWidth*(side==='left'?.35:.65));
             const topY=Math.round(img.naturalHeight*.055);
-            ctx.clearRect(0,0,1,1);
             ctx.drawImage(img,topX,topY,1,1,0,0,1,1);
             const [tr,tg,tb]=ctx.getImageData(0,0,1,1).data;
             sheet.style.setProperty('--collection-bg',`rgb(${tr} ${tg} ${tb})`);
           }
 
-          const mask=sheet.querySelector('.hdp-legacy-folio-mask');
-          if(mask){
-            const side=mask.classList.contains('side-right')?'right':'left';
-            const fx=Math.round(img.naturalWidth*(side==='left'?.025:.975));
-            const fy=Math.round(img.naturalHeight*.985);
-            ctx.clearRect(0,0,1,1);
-            ctx.drawImage(img,fx,fy,1,1,0,0,1,1);
-            const [fr,fg,fb]=ctx.getImageData(0,0,1,1).data;
-            sheet.style.setProperty('--folio-mask-bg',`rgb(${fr} ${fg} ${fb})`);
+          // Remove the embedded historical folio itself, pixel-for-pixel.
+          // We search only the audited outer-bottom corner of pages known to contain a legacy folio.
+          const repair=sheet.querySelector('[data-legacy-repair]');
+          const side=p?.legacyFolioSide;
+          if(repair&&side&&repair.dataset.done!=='1'){
+            const W=img.naturalWidth,H=img.naturalHeight;
+            const sx0=Math.round(W*(side==='right'?.80:0));
+            const sy0=Math.round(H*.90);
+            const sw=Math.round(W*.20),sh=Math.round(H*.10);
+
+            const scan=document.createElement('canvas');scan.width=sw;scan.height=sh;
+            const sctx=scan.getContext('2d',{willReadFrequently:true});
+            sctx.drawImage(img,sx0,sy0,sw,sh,0,0,sw,sh);
+            const data=sctx.getImageData(0,0,sw,sh).data;
+
+            let minX=sw,minY=sh,maxX=-1,maxY=-1,count=0;
+            for(let y=0;y<sh;y++){
+              for(let x=0;x<sw;x++){
+                const k=(y*sw+x)*4,r=data[k],g=data[k+1],bl=data[k+2];
+                const green=g>105 && g>r*1.22 && g>bl*1.16 && r<190 && bl<180;
+                if(!green)continue;
+                minX=Math.min(minX,x);minY=Math.min(minY,y);
+                maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);count++;
+              }
+            }
+
+            if(count>4&&maxX>=minX&&maxY>=minY){
+              const pad=Math.max(3,Math.round(W*.002));
+              let tx=Math.max(0,sx0+minX-pad);
+              let ty=Math.max(0,sy0+minY-pad);
+              let tw=Math.min(W-tx,(maxX-minX+1)+pad*2);
+              let th=Math.min(H-ty,(maxY-minY+1)+pad*2);
+
+              // Guard against accidentally selecting a decorative rule/block rather than a folio.
+              if(tw<W*.14 && th<H*.065){
+                const shift=Math.max(Math.round(W*.025),tw*2);
+                let srcX=side==='right'?tx-shift:tx+shift;
+                srcX=Math.max(0,Math.min(W-tw,srcX));
+
+                repair.width=tw;repair.height=th;
+                repair.style.left=`${tx/W*100}%`;
+                repair.style.top=`${ty/H*100}%`;
+                repair.style.width=`${tw/W*100}%`;
+                repair.style.height=`${th/H*100}%`;
+
+                const rctx=repair.getContext('2d');
+                rctx.clearRect(0,0,tw,th);
+                rctx.drawImage(img,srcX,ty,tw,th,0,0,tw,th);
+                repair.dataset.done='1';
+              }
+            }
           }
 
           sheet.dataset.bgReady='1';
         }catch(_){
           sheet.style.setProperty('--collection-bg','#f8f7f3');
-          sheet.style.setProperty('--folio-mask-bg','#f8f7f3');
         }
       };
+
       if(img.complete)apply(); else img.addEventListener('load',apply,{once:true});
     });
   }
@@ -304,13 +346,13 @@
       $('#hdpNext').disabled=spreadIndex===spreads.length-1;
     }
     bindPageOpen();
-    sampleFolioBackgrounds(root);
+    prepareFolioSheets(root);
   }
 
   function renderGrid(){
     $('#hdpGridView').innerHTML=raw.map(p=>pageMarkup(p,'',true)).join('');
     bindPageOpen();
-    sampleFolioBackgrounds(root);
+    prepareFolioSheets(root);
   }
 
   function jumpTo(page){
@@ -391,7 +433,7 @@
     live.innerHTML=isCollectionPage(page)?collectionSheetMarkup(page,false):standardSheetMarkup(page,false);
     $('#hdpZoomOut').disabled=false;$('#hdpZoomIn').disabled=false;$('#hdpZoomActual').disabled=false;$('#hdpZoomFit').disabled=false;
     lightBaseWidth=fitWidth();lightScale=1;updateLightWidth('Вписано');
-    requestAnimationFrame(()=>sampleFolioBackgrounds(live));
+    requestAnimationFrame(()=>prepareFolioSheets(live));
   }
 
   function closeLight(){
