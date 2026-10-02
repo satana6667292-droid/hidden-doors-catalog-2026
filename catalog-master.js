@@ -49,17 +49,56 @@
   });
 
   // FOLIO MASTER v1 — approved 2026-10-02.
-  // Visual folio is rendered by one shared component. Legacy embedded folios
-  // are masked only where they actually exist in source artwork.
-  const legacyFolioSide={
-    2:'right',3:'right',4:'right',5:'right',
-    7:'right',8:'left',11:'right',12:'left',15:'right',16:'left',19:'right',20:'left',
-    27:'right',28:'right',29:'right',30:'right',31:'right',32:'right',33:'right',34:'right',
-    35:'right',36:'right',37:'right',38:'right',39:'right',40:'right',41:'right',42:'right',
-    43:'right',44:'right'
+  // Every legacy source folio is explicitly masked before the single global folio is rendered.
+  // Rectangles are percentages of the page and are deliberately tight so content rules are untouched.
+  const legacyFolioMasks={
+    2:[{x:2.1,y:93.8,w:4.4,h:4.8}],
+    3:[{x:92.7,y:91.8,w:4.0,h:4.5}],
+    4:[{x:95.2,y:94.6,w:3.8,h:4.2}],
+    5:[{x:94.0,y:93.7,w:3.9,h:3.7}],
+
+    7:[{x:93.6,y:96.0,w:4.9,h:2.8}],
+    8:[{x:2.5,y:96.0,w:4.9,h:2.8}],
+    11:[{x:93.6,y:96.0,w:4.9,h:2.8}],
+    12:[{x:2.5,y:96.0,w:4.9,h:2.8}],
+    15:[{x:93.6,y:96.0,w:4.9,h:2.8}],
+    16:[{x:2.5,y:96.0,w:4.9,h:2.8}],
+    19:[{x:93.6,y:96.0,w:4.9,h:2.8}],
+    20:[{x:2.5,y:96.0,w:4.9,h:2.8}],
+
+    27:[{x:83.7,y:95.8,w:3.5,h:3.7}],
+    28:[{x:94.0,y:93.6,w:3.8,h:3.6}],
+    29:[{x:83.7,y:92.8,w:3.5,h:3.7}],
+    30:[{x:92.3,y:94.5,w:3.9,h:3.7}],
+    31:[{x:92.6,y:93.1,w:3.9,h:3.8}],
+    32:[{x:93.9,y:93.0,w:3.6,h:3.7}],
+    33:[{x:94.8,y:94.5,w:3.9,h:3.9}],
+    34:[{x:94.8,y:94.5,w:3.9,h:3.9}],
+    35:[{x:94.8,y:94.5,w:3.9,h:3.9}],
+    36:[
+      {x:94.8,y:93.7,w:3.6,h:2.8},
+      {x:96.4,y:96.1,w:3.6,h:3.6}
+    ],
+    37:[{x:96.3,y:96.2,w:3.7,h:3.6}],
+    38:[{x:71.4,y:96.2,w:3.8,h:3.6}],
+    39:[
+      {x:94.8,y:94.2,w:3.7,h:2.5},
+      {x:96.3,y:96.2,w:3.7,h:3.6}
+    ],
+    40:[{x:94.0,y:93.6,w:3.8,h:3.6}],
+    41:[
+      {x:92.8,y:91.8,w:2.8,h:2.6},
+      {x:96.3,y:96.1,w:3.7,h:3.6}
+    ],
+    42:[
+      {x:93.2,y:93.0,w:2.9,h:2.8},
+      {x:96.3,y:96.1,w:3.7,h:3.6}
+    ],
+    43:[{x:94.0,y:93.6,w:3.8,h:3.6}],
+    44:[{x:91.7,y:91.3,w:3.9,h:3.7}]
   };
   pages.forEach(p=>{
-    p.legacyFolioSide=legacyFolioSide[p.physicalIndex]||null;
+    p.legacyFolioMasks=legacyFolioMasks[p.physicalIndex]||[];
     p.folioMaster='v1';
   });
 
