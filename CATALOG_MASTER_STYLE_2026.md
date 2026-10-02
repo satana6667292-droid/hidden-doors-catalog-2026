@@ -35,7 +35,8 @@ Reference: approved page 02.
 - Small captions / notes: 7 pt minimum.
 - Page number: 13 pt Manrope SemiBold / Bold.
 - Never resize H1 independently just to fill space.
-- Left and right pages in one spread must share the same H1 size and vertical start.
+- Left and right pages in one spread must share the same H1 size, weight and vertical start.
+- H1 is always Manrope Bold; do not mix Regular and Bold H1 inside one spread.
 - If content does not fit, first optimize grid, spacing and grouping. Reducing text below the minimum readable size is not an acceptable layout solution.
 
 ## 4. Page number
@@ -61,12 +62,18 @@ Reference: approved page 02.
 - Review and approval are spread-first: after the single front cover, all catalog work is shown and evaluated only as two-page spreads.
 - Do not present isolated inner pages for visual approval unless the user explicitly asks for one.
 - Any page normalization must be checked against its facing page before approval.
+- Every working spread is shown together with the approved reference spread 02–03 at the same viewing scale, so logo, rule, H1, typography, margins and page numbers can be compared directly.
 - A spread is designed as one composition.
 - Same logo scale, heading scale, top rhythm, margins and accents on both pages.
 - Content may differ, shell may not.
 - No editor-only labels such as “LEFT / RIGHT” in public catalog.
 
-## 6. Page types
+## 6. Technical micro-elements
+- Orphan technical fragments are not allowed: a section/profile/thickness sketch must visually belong to the parent schematic or explanatory block.
+- Dimension labels, profile fragments and explanatory captions must not float in the footer zone.
+- If a technical micro-diagram is not necessary for understanding, keep the confirmed text value and remove the decorative fragment rather than leaving a detached element.
+
+## 7. Page types
 1. Information page — company, contents, contacts.
 2. Technical page — dimensions, construction, equipment.
 3. Models page — collection / model matrix.
@@ -75,14 +82,14 @@ Reference: approved page 02.
 
 Each type gets one mechanical template. New pages must use the nearest existing template rather than inventing a new layout.
 
-## 7. Readability balance inside a spread
+## 8. Readability balance inside a spread
 - Both pages of one spread must have comparable visual readability and typographic weight.
 - One page must not look like a readable editorial page while the opposite page looks like a compressed reference sheet.
 - Main information must be readable at normal catalog viewing size without zoom.
 - The visual shell may be mirrored, but font hierarchy, scale and rhythm must remain consistent.
 - A page is considered non-compliant if its main text is visibly smaller than the neighboring page without a functional reason.
 
-## 8. Contents / navigation pages
+## 9. Contents / navigation pages
 - Contents is an information page, not a technical micro-table.
 - Section headers: 12–14 pt minimum.
 - Navigation rows: 9 pt preferred; 8.5 pt absolute minimum.
@@ -95,7 +102,7 @@ Each type gets one mechanical template. New pages must use the nearest existing 
   4. shorter wording where meaning is preserved.
 - Do not solve overflow by shrinking primary navigation text below the readable minimum.
 
-## 9. Optical consistency check
+## 10. Optical consistency check
 Before approval, every spread must pass a visual check at one common zoom:
 - logo scale matches;
 - green rule scale and vertical coordinate match;
