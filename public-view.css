@@ -79,7 +79,7 @@ body.hd-public-view{margin:0;background:var(--bg);color:var(--ink);font-family:M
 
 /* 36 mm collection templates — shared shell, original approved content underneath. */
 .hdp-collection-open{container-type:inline-size;background:transparent}
-.hdp-collection-sheet{--collection-bg:#f8f7f3;position:relative;width:100%;aspect-ratio:297/210;overflow:hidden;background:var(--collection-bg);container-type:inline-size}
+.hdp-collection-sheet{--collection-bg:#f8f7f3;--collection-footer-bg:#f8f7f3;position:relative;width:100%;aspect-ratio:297/210;overflow:hidden;background:var(--collection-bg);container-type:inline-size}
 .hdp-collection-base{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:fill;z-index:1}
 .hdp-collection-logo-mask,
 .hdp-collection-legacy-number-mask,
@@ -89,10 +89,10 @@ body.hd-public-view{margin:0;background:var(--bg);color:var(--ink);font-family:M
 .hdp-collection-logo{position:absolute;top:5.645%;width:19.32%;height:auto;z-index:3;pointer-events:none}
 .hdp-collection-sheet.side-left .hdp-collection-logo{left:3.19%}
 .hdp-collection-sheet.side-right .hdp-collection-logo{right:3.19%}
-.hdp-collection-sheet.side-left .hdp-collection-legacy-number-mask{left:0;bottom:0;width:12.5%;height:8.4%}
-.hdp-collection-sheet.side-right .hdp-collection-legacy-number-mask{right:0;bottom:0;width:12.5%;height:8.4%}
+.hdp-collection-sheet.side-left .hdp-collection-legacy-number-mask{left:0;bottom:0;width:10.2%;height:5.7%;background:var(--collection-footer-bg)}
+.hdp-collection-sheet.side-right .hdp-collection-legacy-number-mask{right:0;bottom:0;width:10.2%;height:5.7%;background:var(--collection-footer-bg)}
 .hdp-collection-tech-mask{left:25%;top:0;width:50%;height:4.2%}
-.hdp-collection-number{position:absolute;bottom:4.762%;z-index:4;color:var(--green);font:700 1.55cqw/1 Manrope,Arial,sans-serif;letter-spacing:0;pointer-events:none;text-shadow:0 0 .14cqw rgba(255,255,255,.85)}
+.hdp-collection-number{position:absolute;bottom:4.762%;z-index:4;background:transparent!important;color:var(--green);font:700 1.55cqw/1 Manrope,Arial,sans-serif;letter-spacing:0;pointer-events:none;text-shadow:0 0 .14cqw rgba(255,255,255,.85)}
 .hdp-collection-sheet.side-left .hdp-collection-number{left:4.04%;text-align:left}
 .hdp-collection-sheet.side-right .hdp-collection-number{right:4.04%;text-align:right}
 .hdp-collection-sheet.is-interior .hdp-collection-number{text-shadow:0 0 .22cqw rgba(255,255,255,.98),0 0 .08cqw rgba(255,255,255,.98)}
