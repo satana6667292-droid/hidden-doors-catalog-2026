@@ -57,6 +57,7 @@ Reference: approved page 02.
 - On full-bleed photography only, a very thin white optical halo is allowed for legibility; it must not read as a box.
 - A folio must never touch or overlap text, a card, a rule, a diagram, a model caption or another page element.
 - Old page numbers and old spread ranges embedded in source artwork must be removed/masked before the new folio is shown.
+- Legacy folio cleanup is audited page-by-page. A source page may contain more than one historical number; every historical folio must be removed so exactly one FOLIO MASTER number remains visible.
 - Legacy-number cleanup must be optically invisible: its mask samples the actual local footer tone and must not interrupt nearby horizontal rules.
 - Public folio is calculated from the final order of **included** pages. Stable internal/source page IDs never change when pages are hidden or reordered.
 - Current public sequence after hiding 23A / Classic / Reverse: 01…23, then source 26→24, 27→25, 28→26, 29→27, 30→28 … source 43→41.
