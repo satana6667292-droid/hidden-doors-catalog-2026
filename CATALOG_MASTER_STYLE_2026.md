@@ -42,31 +42,26 @@ Reference: approved page 02.
 - Minimum optical gap from the visible bottom of H1 to the next content heading: 8 mm.
 - After any H1 normalization, verify the first row of content headings for intact glyphs and full ascenders/descenders.
 
-## 4. Page number
-- Page number is part of the fixed master shell; it must never float or be resized from page to page.
-- Typeface: Manrope SemiBold / Bold only.
-- Color: brand green #57C035.
-- **Optical digit height:** 4.6 mm. At the 300 dpi working raster this is **54 px of visible glyph height**.
-- Do not rely only on the nominal font-size value: the rendered digit bounding box must match the 4.6 mm / 54 px optical height of the reference spread.
-- Page-number placement is controlled globally by the master template, never per page.
-- Left-page number anchor: **3% of page width from the left trim edge**.
-- Right-page number anchor: **5.1% of page width from the right trim edge** (this intentionally moves the right-page number slightly left for optical balance).
-- Bottom offset: **1.8% of page height**; the number must sit fully below the lowest content/card rule.
-- Left page of a spread: the visible digit bounding box starts 12 mm from the left outer edge; left-aligned.
-- Right page of a spread: the visible digit bounding box ends 12 mm from the right outer edge; right-aligned.
-- Never place a page number near the spine.
-- All page numbers share one common bottom line and optical height.
-- Page numbers must never sit on a visible patch, badge, white box or gray rectangle. If a legacy number is masked, the mask must match the actual local footer tone so the correction is optically invisible.
-- At 300 dpi working raster (3509 × 2480 px):
-  - visible digit height = **54 px**.
-  - left-page anchor ≈ **105 px** from the left edge.
-  - right-page anchor ≈ **179 px** from the right edge.
-  - bottom offset ≈ **45 px**; visible digit top is approximately **2381 px**.
-- If a source page contains a legacy page/spread number, mask only the legacy text itself in the footer band. The mask must stay **below the lowest card/content rule** so no horizontal line is interrupted.
-- Before approval, compare page numbers against the approved 02–03 spread at the same scale. Any visible size mismatch is a master-style violation.
-- Public number is calculated from current included-page order.
-- Stable internal page ID does not change when pages are removed/reordered.
-- Reference implementation: spread 02–03 MASTER v3.
+## 4. Page number — FOLIO MASTER v1
+- Status: **approved 2026-10-02**.
+- Front cover is logically page 01, but the number is **not printed on the cover**.
+- All other included pages use one shared folio component. Page numbers are never designed or positioned per page.
+- Typeface: **Manrope SemiBold**.
+- Nominal size: **10 pt**.
+- Color: brand green **#57C035**.
+- Left page of a spread: folio only in the **bottom-left outer corner**.
+- Right page of a spread: folio only in the **bottom-right outer corner**.
+- Horizontal outer offset: **8 mm from trim**.
+- Bottom offset: **5 mm from trim**.
+- No capsule, white/gray badge, rectangle, border or background is allowed behind a folio.
+- On full-bleed photography only, a very thin white optical halo is allowed for legibility; it must not read as a box.
+- A folio must never touch or overlap text, a card, a rule, a diagram, a model caption or another page element.
+- Old page numbers and old spread ranges embedded in source artwork must be removed/masked before the new folio is shown.
+- Legacy-number cleanup must be optically invisible: its mask samples the actual local footer tone and must not interrupt nearby horizontal rules.
+- Public folio is calculated from the final order of **included** pages. Stable internal/source page IDs never change when pages are hidden or reordered.
+- Current public sequence after hiding 23A / Classic / Reverse: 01…23, then source 26→24, 27→25, 28→26, 29→27, 30→28 … source 43→41.
+- Website, screen catalog and future print/PDF export must all use this same FOLIO MASTER v1.
+- Control proof approved on six page types: 36 mm technical, 36 mm models, 36 mm interior, 42 mm technical, 59 mm materials and wall panels.
 
 ## 5. Spread logic
 - Review and approval are spread-first: after the single front cover, all catalog work is shown and evaluated only as two-page spreads.
