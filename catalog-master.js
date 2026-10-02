@@ -52,10 +52,10 @@
   // Every legacy source folio is explicitly masked before the single global folio is rendered.
   // Rectangles are percentages of the page and are deliberately tight so content rules are untouched.
   const legacyFolioMasks={
-    2:[{x:3.5,y:92.4,w:3.4,h:1.9}],
+    2:[{x:3.4,y:92.0,w:3.6,h:3.8}],
     3:[{x:92.7,y:91.8,w:4.0,h:4.5}],
     4:[{x:3.5,y:92.4,w:3.4,h:3.1}],
-    5:[{x:93.2,y:92.4,w:3.5,h:2.1}],
+    5:[{x:93.2,y:92.0,w:3.2,h:3.8}],
 
     7:[{x:93.6,y:96.0,w:4.9,h:2.8}],
     8:[{x:2.5,y:96.0,w:4.9,h:2.8}],
@@ -122,6 +122,6 @@
     pages,
     visiblePages:visible,
     byPhysical,
-    version:'2026-10-02-folio-master-v1-baked-audit2'
+    version:'2026-10-02-folio-master-v1-baked-final'
   };
 })();
