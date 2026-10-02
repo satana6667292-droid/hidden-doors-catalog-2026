@@ -132,3 +132,11 @@ Before approval, every spread must pass a visual check at one common zoom:
 3. Approve page.
 4. Freeze asset in published master.
 5. Only then use it for web/PDF/print export.
+
+
+## 12. Frozen approved product pages
+- Pages 06–21 (36 mm framed-panel / milled collections: MODENA, SIENA, LUCCA, AXIS, VECTOR, RHYTHM, ARC, FLUTE) are approved source pages and are **frozen as-is**.
+- Do not crop, reframe, redraw, resize internal artwork, retype headings, move model cards, replace images, or apply the global master shell inside these approved pages.
+- The website viewer may place two frozen pages side by side as a spread, but the page pixels themselves must remain unchanged.
+- Any future edit to a frozen page requires an explicit user request for that exact page.
+- For review, show the frozen spread exactly from the approved page assets, without editorial overlays inside the page area.
