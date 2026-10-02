@@ -15,8 +15,38 @@
   const hidden=new Set(['23A','24','25']);
   pages.forEach(p=>{ if(hidden.has(p.sourceLabel)) p.included=false; });
   // Explicit approvals already fixed in the published catalog.
-  const approvedPhysical=new Set([4,5,28,32]);
+  const approvedPhysical=new Set([4,5,6,7,8,9,10,11,13,14,15,16,17,18,19,20,21,28,32]);
   pages.forEach(p=>{if(approvedPhysical.has(p.physicalIndex)){p.status='approved';p.statusText='Согласовано';}});
+
+  // Collection pages 06–21 are rendered through two reusable templates.
+  // The original page stays the content source; the shared shell owns logo + page number.
+  const collectionTemplates={
+    6:{type:'collection-interior',side:'left'},
+    7:{type:'collection-models',side:'right'},
+    8:{type:'collection-models',side:'left'},
+    9:{type:'collection-interior',side:'right'},
+    10:{type:'collection-interior',side:'left'},
+    11:{type:'collection-models',side:'right'},
+    12:{type:'collection-models',side:'left',hideTopNote:true},
+    13:{type:'collection-interior',side:'right'},
+    14:{type:'collection-interior',side:'left'},
+    15:{type:'collection-models',side:'right'},
+    16:{type:'collection-models',side:'left'},
+    17:{type:'collection-interior',side:'right'},
+    18:{type:'collection-interior',side:'left'},
+    19:{type:'collection-models',side:'right'},
+    20:{type:'collection-models',side:'left'},
+    21:{type:'collection-interior',side:'right'}
+  };
+  pages.forEach(p=>{
+    const t=collectionTemplates[p.physicalIndex];
+    if(t){
+      p.templateType=t.type;
+      p.templateSide=t.side;
+      p.hideTopNote=!!t.hideTopNote;
+      p.shellVersion='collection-v1';
+    }
+  });
 
   const visible=pages.filter(p=>p.included);
   const cover=visible.find(p=>p.physicalIndex===1)||visible[0];
@@ -35,6 +65,6 @@
     pages,
     visiblePages:visible,
     byPhysical,
-    version:'2026-10-01-master-12'
+    version:'2026-10-02-master-15'
   };
 })();
