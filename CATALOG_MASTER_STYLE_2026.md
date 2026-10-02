@@ -40,20 +40,25 @@ Reference: approved page 02.
 - If content does not fit, first optimize grid, spacing and grouping. Reducing text below the minimum readable size is not an acceptable layout solution.
 
 ## 4. Page number
-- Page number is part of the fixed master shell; it must never float from page to page.
-- Font: Manrope SemiBold / Bold.
-- Size: 13 pt.
+- Page number is part of the fixed master shell; it must never float or be resized from page to page.
+- Typeface: Manrope SemiBold / Bold only.
 - Color: brand green #57C035.
-- Outer horizontal offset: 12 mm from the outer trim edge.
-- Bottom offset: 10 mm from the bottom trim edge.
-- Left page of a spread: number in the bottom-left OUTER corner, left-aligned.
-- Right page of a spread: number in the bottom-right OUTER corner, right-aligned.
+- **Optical digit height:** 4.6 mm. At the 300 dpi working raster this is **54 px of visible glyph height**.
+- Do not rely only on the nominal font-size value: the rendered digit bounding box must match the 4.6 mm / 54 px optical height of the reference spread.
+- Outer horizontal offset: **12 mm from the outer trim edge**.
+- Bottom offset: **10 mm from the bottom trim edge to the visible bottom of the digits**.
+- Left page of a spread: the visible digit bounding box starts 12 mm from the left outer edge; left-aligned.
+- Right page of a spread: the visible digit bounding box ends 12 mm from the right outer edge; right-aligned.
 - Never place a page number near the spine.
-- All page numbers share one common vertical baseline.
+- All page numbers share one common bottom line and optical height.
 - At 300 dpi working raster (3509 × 2480 px):
-  - 12 mm = ~142 px.
-  - 10 mm = ~118 px.
-  - 13 pt = ~54 px nominal text height.
+  - 12 mm = **142 px**.
+  - 10 mm = **118 px**.
+  - visible digit height = **54 px**.
+  - visible digit top = **2308 px** and bottom = **2362 px** on a 2480 px page.
+  - left-page visible number starts at **x = 142 px**.
+  - right-page visible number ends at **x = 3367 px**.
+- Before approval, compare page numbers against the approved 02–03 spread at the same scale. Any visible size mismatch is a master-style violation.
 - Public number is calculated from current included-page order.
 - Stable internal page ID does not change when pages are removed/reordered.
 - Reference implementation: spread 02–03 MASTER v3.
