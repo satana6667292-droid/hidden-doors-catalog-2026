@@ -118,9 +118,10 @@
   };
 
   const legacyRepairMarkup=p=>{
-    const side=p?.legacyFolioSide;
-    if(!side)return '';
-    return `<canvas class="hdp-legacy-folio-repair side-${side}" data-legacy-repair="${pid(p)}" aria-hidden="true"></canvas>`;
+    const masks=Array.isArray(p?.legacyFolioMasks)?p.legacyFolioMasks:[];
+    if(!masks.length)return '';
+    return masks.map((m,i)=>`<canvas class="hdp-legacy-folio-repair" data-legacy-repair="${pid(p)}" data-mask-index="${i}" aria-hidden="true"
+      style="left:${m.x}%;top:${m.y}%;width:${m.w}%;height:${m.h}%"></canvas>`).join('');
   };
 
   function standardSheetMarkup(p,useThumb=false){
@@ -157,7 +158,7 @@
         const p=byId.get(Number(sheet.dataset.folioSheet));
 
         try{
-          // Collection logo cleanup still samples the actual paper tone.
+          // Collection logo cleanup samples the actual paper tone.
           if(sheet.classList.contains('hdp-collection-sheet')){
             const c=document.createElement('canvas');c.width=1;c.height=1;
             const ctx=c.getContext('2d',{willReadFrequently:true});
@@ -169,81 +170,34 @@
             sheet.style.setProperty('--collection-bg',`rgb(${tr} ${tg} ${tb})`);
           }
 
-          // Remove the embedded historical folio itself, pixel-for-pixel.
-          // We search only the audited outer-bottom corner of pages known to contain a legacy folio.
-          const repair=sheet.querySelector('[data-legacy-repair]');
-          const side=p?.legacyFolioSide;
-          if(repair&&side&&repair.dataset.done!=='1'){
+          // Legacy folios were audited page-by-page.
+          // Each tiny repair canvas copies pixels from the same footer row nearby,
+          // so old numbers disappear without a visible white/gray rectangle or broken rule.
+          const masks=Array.isArray(p?.legacyFolioMasks)?p.legacyFolioMasks:[];
+          sheet.querySelectorAll('[data-legacy-repair]').forEach(repair=>{
+            if(repair.dataset.done==='1')return;
+            const idx=Number(repair.dataset.maskIndex||0);
+            const m=masks[idx];
+            if(!m)return;
+
             const W=img.naturalWidth,H=img.naturalHeight;
+            const tx=Math.max(0,Math.round(W*(m.x/100)));
+            const ty=Math.max(0,Math.round(H*(m.y/100)));
+            const tw=Math.max(1,Math.min(W-tx,Math.round(W*(m.w/100))));
+            const th=Math.max(1,Math.min(H-ty,Math.round(H*(m.h/100))));
 
-            // Legacy spread ranges on collection model pages are light gray, not green.
-            // Their footer corner is intentionally blank, so repair that tiny fixed zone
-            // by copying neighboring pixels from the same page.
-            if(isCollectionPage(p)&&p.templateType==='collection-models'){
-              const tw=Math.round(W*.12),th=Math.round(H*.045);
-              const tx=side==='right'?W-tw:0;
-              const ty=H-th;
-              const shift=Math.round(W*.13);
-              const srcX=side==='right'?Math.max(0,tx-shift):Math.min(W-tw,tx+shift);
+            // Sample far enough away that a second historical number cannot leak into the patch.
+            const center=(m.x+m.w/2)/100;
+            const shift=Math.max(Math.round(W*.055),tw*2);
+            let srcX=center>.5?tx-shift:tx+shift;
+            srcX=Math.max(0,Math.min(W-tw,srcX));
 
-              repair.width=tw;repair.height=th;
-              repair.style.left=`${tx/W*100}%`;
-              repair.style.top=`${ty/H*100}%`;
-              repair.style.width=`${tw/W*100}%`;
-              repair.style.height=`${th/H*100}%`;
-              const rctx=repair.getContext('2d');
-              rctx.drawImage(img,srcX,ty,tw,th,0,0,tw,th);
-              repair.dataset.done='1';
-              sheet.dataset.bgReady='1';
-              return;
-            }
-
-            const sx0=Math.round(W*(side==='right'?.80:0));
-            const sy0=Math.round(H*.90);
-            const sw=Math.round(W*.20),sh=Math.round(H*.10);
-
-            const scan=document.createElement('canvas');scan.width=sw;scan.height=sh;
-            const sctx=scan.getContext('2d',{willReadFrequently:true});
-            sctx.drawImage(img,sx0,sy0,sw,sh,0,0,sw,sh);
-            const data=sctx.getImageData(0,0,sw,sh).data;
-
-            let minX=sw,minY=sh,maxX=-1,maxY=-1,count=0;
-            for(let y=0;y<sh;y++){
-              for(let x=0;x<sw;x++){
-                const k=(y*sw+x)*4,r=data[k],g=data[k+1],bl=data[k+2];
-                const green=g>105 && g>r*1.22 && g>bl*1.16 && r<190 && bl<180;
-                if(!green)continue;
-                minX=Math.min(minX,x);minY=Math.min(minY,y);
-                maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);count++;
-              }
-            }
-
-            if(count>4&&maxX>=minX&&maxY>=minY){
-              const pad=Math.max(3,Math.round(W*.002));
-              let tx=Math.max(0,sx0+minX-pad);
-              let ty=Math.max(0,sy0+minY-pad);
-              let tw=Math.min(W-tx,(maxX-minX+1)+pad*2);
-              let th=Math.min(H-ty,(maxY-minY+1)+pad*2);
-
-              // Guard against accidentally selecting a decorative rule/block rather than a folio.
-              if(tw<W*.14 && th<H*.065){
-                const shift=Math.max(Math.round(W*.025),tw*2);
-                let srcX=side==='right'?tx-shift:tx+shift;
-                srcX=Math.max(0,Math.min(W-tw,srcX));
-
-                repair.width=tw;repair.height=th;
-                repair.style.left=`${tx/W*100}%`;
-                repair.style.top=`${ty/H*100}%`;
-                repair.style.width=`${tw/W*100}%`;
-                repair.style.height=`${th/H*100}%`;
-
-                const rctx=repair.getContext('2d');
-                rctx.clearRect(0,0,tw,th);
-                rctx.drawImage(img,srcX,ty,tw,th,0,0,tw,th);
-                repair.dataset.done='1';
-              }
-            }
-          }
+            repair.width=tw;repair.height=th;
+            const rctx=repair.getContext('2d');
+            rctx.clearRect(0,0,tw,th);
+            rctx.drawImage(img,srcX,ty,tw,th,0,0,tw,th);
+            repair.dataset.done='1';
+          });
 
           sheet.dataset.bgReady='1';
         }catch(_){
