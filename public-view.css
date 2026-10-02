@@ -80,10 +80,7 @@ body.hd-public-view{margin:0;background:var(--bg);color:var(--ink);font-family:M
 /* FOLIO MASTER v1 — approved global pagination layer. */
 .hdp-folio-sheet{--folio-mask-bg:#fff;position:relative;width:100%;aspect-ratio:297/210;overflow:hidden;background:#fff;container-type:inline-size}
 .hdp-sheet-base{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:fill;z-index:1}
-.hdp-legacy-folio-mask{position:absolute;bottom:0;width:8.2%;height:4.0%;background:var(--folio-mask-bg);z-index:2;pointer-events:none}
-.hdp-legacy-folio-mask.wide{width:13.5%;height:4.0%}
-.hdp-legacy-folio-mask.side-left{left:0}
-.hdp-legacy-folio-mask.side-right{right:0}
+.hdp-legacy-folio-repair{position:absolute;display:block;z-index:4;pointer-events:none}
 .hdp-folio{position:absolute;bottom:var(--folio-bottom);z-index:5;color:var(--green);font:600 1.188cqw/1 Manrope,Arial,sans-serif;letter-spacing:0;background:transparent!important;pointer-events:none}
 .hdp-folio.side-left{left:var(--folio-outer);text-align:left}
 .hdp-folio.side-right{right:var(--folio-outer);text-align:right}
