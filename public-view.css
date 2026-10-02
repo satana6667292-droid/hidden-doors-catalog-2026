@@ -2,7 +2,7 @@
 @font-face{font-family:Manrope;src:url('../assets/manrope-600.ttf') format('truetype');font-weight:600;font-display:swap}
 @font-face{font-family:Manrope;src:url('../assets/manrope-700.ttf') format('truetype');font-weight:700;font-display:swap}
 @font-face{font-family:Manrope;src:url('../assets/manrope-800.ttf') format('truetype');font-weight:800;font-display:swap}
-:root{--ink:#231f20;--green:#57c035;--muted:#757575;--paper:#fff;--bg:#f2f2ef;--line:#deded9}
+:root{--ink:#231f20;--green:#57c035;--muted:#757575;--paper:#fff;--bg:#f2f2ef;--line:#deded9;--page-num-left:3%;--page-num-right:5.1%;--page-num-bottom:1.8%}
 *{box-sizing:border-box}
 html,body{min-height:100%}
 body.hd-public-view{margin:0;background:var(--bg);color:var(--ink);font-family:Manrope,Arial,sans-serif}
@@ -47,7 +47,7 @@ body.hd-public-view{margin:0;background:var(--bg);color:var(--ink);font-family:M
 .hdp-toc-rows{display:grid;gap:.82cqw}
 .hdp-toc-row{display:grid;grid-template-columns:7.35cqw 1fr;gap:1.05cqw;align-items:start;min-width:0}.hdp-toc-row em{font-style:normal;color:var(--green);font-weight:700;font-size:1.14cqw;line-height:1.30;white-space:nowrap}.hdp-toc-row span{font-size:1.14cqw;color:#585858;line-height:1.30;min-width:0}
 .hdp-toc-rows-2col{grid-template-columns:1fr 1fr;column-gap:1.85cqw;row-gap:.52cqw}.hdp-toc-rows-2col .hdp-toc-row{grid-template-columns:4.55cqw 1fr;gap:.72cqw}.hdp-toc-rows-2col .hdp-toc-row em,.hdp-toc-rows-2col .hdp-toc-row span{font-size:1.02cqw;line-height:1.26}
-.hdp-live-note{position:absolute;left:4.4cqw;bottom:2.25cqw;color:#aaa;font-size:.82cqw}.hdp-live-page-no{position:absolute;right:4.0cqw;bottom:2.25cqw;color:var(--green);font-weight:700;font-size:1.02cqw}
+.hdp-live-note{position:absolute;left:4.4cqw;bottom:2.25cqw;color:#aaa;font-size:.82cqw}.hdp-live-page-no{position:absolute;right:var(--page-num-right);bottom:var(--page-num-bottom);color:var(--green);font-weight:700;font-size:1.02cqw}
 
 /* Contents drawer */
 .hdp-drawer{position:fixed;top:0;bottom:0;left:0;width:min(92vw,440px);background:#fff;z-index:110;transform:translateX(-102%);transition:.22s ease;box-shadow:20px 0 60px #0003}
@@ -89,8 +89,8 @@ body.hd-public-view{margin:0;background:var(--bg);color:var(--ink);font-family:M
 .hdp-collection-logo{position:absolute;top:5.645%;width:19.32%;height:auto;z-index:3;pointer-events:none}
 .hdp-collection-sheet.side-left .hdp-collection-logo{left:3.19%}
 .hdp-collection-sheet.side-right .hdp-collection-logo{right:3.19%}
-.hdp-collection-sheet.side-left .hdp-collection-legacy-number-mask{left:0;bottom:0;width:10.2%;height:5.7%;background:var(--collection-footer-bg)}
-.hdp-collection-sheet.side-right .hdp-collection-legacy-number-mask{right:0;bottom:0;width:10.2%;height:5.7%;background:var(--collection-footer-bg)}
+.hdp-collection-sheet.side-left .hdp-collection-legacy-number-mask{left:0;bottom:0;width:6.5%;height:4.2%;background:var(--collection-footer-bg)}
+.hdp-collection-sheet.side-right .hdp-collection-legacy-number-mask{right:0;bottom:0;width:6.5%;height:4.2%;background:var(--collection-footer-bg)}
 .hdp-collection-tech-mask{left:25%;top:0;width:50%;height:4.2%}
 .hdp-collection-number{position:absolute;bottom:4.762%;z-index:4;background:transparent!important;color:var(--green);font:700 1.55cqw/1 Manrope,Arial,sans-serif;letter-spacing:0;pointer-events:none;text-shadow:0 0 .14cqw rgba(255,255,255,.85)}
 .hdp-collection-sheet.side-left .hdp-collection-number{left:4.04%;text-align:left}
