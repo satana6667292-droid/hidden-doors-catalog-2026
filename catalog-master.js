@@ -15,7 +15,7 @@
   const hidden=new Set(['23A','24','25']);
   pages.forEach(p=>{ if(hidden.has(p.sourceLabel)) p.included=false; });
   // Explicit approvals already fixed in the published catalog.
-  const approvedPhysical=new Set([28,32]);
+  const approvedPhysical=new Set([4,5,28,32]);
   pages.forEach(p=>{if(approvedPhysical.has(p.physicalIndex)){p.status='approved';p.statusText='Согласовано';}});
 
   const visible=pages.filter(p=>p.included);
