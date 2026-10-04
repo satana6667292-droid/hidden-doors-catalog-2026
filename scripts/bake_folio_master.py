@@ -79,15 +79,12 @@ FOOTER_NOTE_SHIFTS = {
 # Full-bleed interior pages need a tiny optical halo around the green number.
 PHOTO_PAGES = {6, 9, 10, 13, 14, 17, 18, 21}
 
-# LOGO MASTER S — pilot only on spread 04–05.
-# User approved the smallest/most restrained logo option.
+# LOGO MASTER — pilot only on spread 04–05; scale matched to approved ARC page 19.
+# Reference is the actual logo size and outer-corner placement on ARC public page 19.
 LOGO_MASTER_TEST_PAGES = {4, 5}
-LOGO_WIDTH_MM = 47.0
-LOGO_OUTER_MM = 13.5
-LOGO_TOP_MM = 9.5
-LOGO_RULE_WIDTH_MM = 16.0
-LOGO_RULE_HEIGHT_MM = 1.2
-LOGO_RULE_GAP_MM = 4.0
+LOGO_WIDTH_MM = 58.0
+LOGO_OUTER_MM = 8.5
+LOGO_TOP_MM = 11.0
 
 
 def mm_x(W, mm):
@@ -114,15 +111,14 @@ def apply_logo_master_s(im: Image.Image, physical: int, logo_path: Path):
 
     W, H = im.size
 
-    # Remove the historical logo treatment in the header only.
+    # Remove only the historical logo treatment; preserve all other page graphics.
     if physical == 4:
-        # Covers old oversized logo and any legacy tagline beneath it.
+        # Page 04 had an oversized logo and the legacy tagline below it.
         clear_pct(im, 2.5, 2.0, 27.0, 20.5)
         side = "left"
     else:
-        # Page 05 revisions exist with either a left green dash or an old right logo.
-        clear_pct(im, 2.0, 3.0, 10.0, 7.0)
-        clear_pct(im, 75.0, 2.0, 23.0, 16.5)
+        # Keep the existing green heading dash on page 05; only reserve the outer logo zone.
+        clear_pct(im, 76.0, 2.0, 22.0, 14.0)
         side = "right"
 
     logo = Image.open(logo_path).convert("RGBA")
@@ -132,23 +128,8 @@ def apply_logo_master_s(im: Image.Image, physical: int, logo_path: Path):
 
     outer = mm_x(W, LOGO_OUTER_MM)
     top = mm_y(H, LOGO_TOP_MM)
-    if side == "left":
-        x = outer
-        rule_x0 = x
-    else:
-        x = W - outer - target_w
-        rule_x0 = W - outer - mm_x(W, LOGO_RULE_WIDTH_MM)
-
+    x = outer if side == "left" else W - outer - target_w
     im.paste(logo, (x, top), logo)
-
-    rule_y = top + target_h + mm_y(H, LOGO_RULE_GAP_MM)
-    rule_h = max(1, mm_y(H, LOGO_RULE_HEIGHT_MM))
-    rule_w = max(1, mm_x(W, LOGO_RULE_WIDTH_MM))
-    ImageDraw.Draw(im).rounded_rectangle(
-        (rule_x0, rule_y, rule_x0 + rule_w, rule_y + rule_h),
-        radius=max(1, rule_h // 2),
-        fill=GREEN,
-    )
 
 
 def public_sequence():
