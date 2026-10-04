@@ -5,7 +5,7 @@
 
   const pid=p=>Number(p.physicalIndex??p.id);
   const pad=n=>String(n).padStart(3,'0');
-  const ASSET_V='master26-logo-clean';
+  const ASSET_V='master27-logo-raster';
   const pageSrc=p=>`assets/pages/page-${pad(pid(p))}.webp?v=${ASSET_V}`;
   const thumbSrc=p=>`assets/thumbs/page-${pad(pid(p))}.webp?v=${ASSET_V}`;
   const byId=new Map(raw.map(p=>[pid(p),p]));
@@ -130,8 +130,6 @@
     const techMask=p.hideTopNote?'<span class="hdp-collection-tech-mask" aria-hidden="true"></span>':'';
     return `<div class="hdp-folio-sheet hdp-collection-sheet ${models?'is-models':'is-interior'} side-${side}" data-folio-sheet="${pid(p)}" data-collection-sheet="${pid(p)}">
       <img class="hdp-sheet-base hdp-collection-base" src="${src}" alt="${esc(p.title)}" loading="${useThumb?'lazy':'eager'}" crossorigin="anonymous">
-      ${models?`<span class="hdp-collection-logo-mask" aria-hidden="true"></span>
-      <img class="hdp-collection-logo" src="../assets/logo.png" alt="" aria-hidden="true">`:''}
       ${legacyRepairMarkup(p)}
       ${techMask}
       ${folioMarkup(p)}
