@@ -5,7 +5,7 @@
 
   const pid=p=>Number(p.physicalIndex??p.id);
   const pad=n=>String(n).padStart(3,'0');
-  const ASSET_V='master28-logo-42';
+  const ASSET_V='master29-veneer-approved';
   const pageSrc=p=>`assets/pages/page-${pad(pid(p))}.webp?v=${ASSET_V}`;
   const thumbSrc=p=>`assets/thumbs/page-${pad(pid(p))}.webp?v=${ASSET_V}`;
   const byId=new Map(raw.map(p=>[pid(p),p]));
@@ -112,7 +112,12 @@
 
   // FOLIO MASTER v1 is baked into generated page assets during deploy.
   const folioMarkup=()=>''; 
-  const legacyRepairMarkup=()=>''; 
+  const legacyRepairMarkup=p=>{
+    if(pid(p)!==36)return '';
+    return `<span class="hdp-p36-work-mask" aria-hidden="true"></span>
+      <span class="hdp-p36-edge hdp-p36-edge-main" aria-hidden="true"></span>
+      <span class="hdp-p36-edge hdp-p36-edge-thumb" aria-hidden="true"></span>`;
+  }; 
 
   function standardSheetMarkup(p,useThumb=false){
     const src=useThumb?thumbSrc(p):pageSrc(p);
