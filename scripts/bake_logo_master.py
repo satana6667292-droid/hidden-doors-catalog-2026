@@ -89,9 +89,10 @@ def clear_logo_zone(im: Image.Image, physical: int, side: str):
             x0, x1 = round(W * 0.725), W
     elif physical == 22:
         # The 42 mm title shares the same top row as the left logo.
-        # Never let logo cleanup touch the leading "42".
-        y_ratio = 0.145
-        x0, x1 = 0, round(W * 0.255)
+        # Remove the entire old logo/tagline/divider treatment, but stop before
+        # the title so the leading "42" is preserved.
+        y_ratio = 0.205
+        x0, x1 = 0, round(W * 0.280)
     elif physical == 38:
         # This source revision placed a fragment of the historical logo farther
         # inward. Clear that fragment without touching the title/work badge below.
