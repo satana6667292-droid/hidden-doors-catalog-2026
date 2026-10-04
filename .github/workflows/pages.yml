@@ -44,6 +44,10 @@ jobs:
             cp "/tmp/page-${n}.webp" "_site/assets/thumbs/page-${n}.webp"
           done
 
+          # LOGO MASTER pilot: use the actual ARC page 19 logo raster as the exact size/placement reference.
+          python3 -m pip install --quiet Pillow
+          python3 scripts/bake_logo_master.py --site _site
+
           # Keep the old application only as the internal editor entrypoint.
           cp _site/index.html _site/editor.html
           cp catalog-master.js editor-pre.js editor-v4.js editor-media.js visual-fixes.js resolved-corrections.js public-view.js public-view.css public-index.html _site/
