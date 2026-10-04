@@ -48,6 +48,10 @@ jobs:
           python3 -m pip install --quiet Pillow
           python3 scripts/bake_logo_master.py --site _site
 
+          # Build full-catalog visual QA sheets on every deploy. These are
+          # inspected before a catalog change is handed back for review.
+          python3 scripts/build_catalog_contact_sheets.py --site _site
+
           # Keep the old application only as the internal editor entrypoint.
           cp _site/index.html _site/editor.html
           cp catalog-master.js editor-pre.js editor-v4.js editor-media.js visual-fixes.js resolved-corrections.js public-view.js public-view.css public-index.html _site/
@@ -74,6 +78,7 @@ jobs:
           test -s _site/editor.html
           test -s _site/catalog-master.js
           test -s _site/assets/pages/page-032.webp
+          test -s _site/_qa/contact-01.webp
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
