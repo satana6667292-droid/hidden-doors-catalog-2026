@@ -79,11 +79,14 @@ def clear_logo_zone(im: Image.Image, physical: int, side: str):
     # Clear the full outer block before placing the master so no green dashes,
     # clipped logo pieces or antialiasing remnants can remain.
     if physical in COLLECTION_MODEL_PAGES:
-        y_ratio = 0.255
+        # Collection cards begin immediately below the header. Keep this mask
+        # deliberately tight: it must cover only the historical logo, never
+        # the first row of model cards.
+        y_ratio = 0.145
         if side == "left":
-            x0, x1 = 0, round(W * 0.405)
+            x0, x1 = 0, round(W * 0.275)
         else:
-            x0, x1 = round(W * 0.595), W
+            x0, x1 = round(W * 0.725), W
     else:
         y_ratio = 0.235 if physical in {2, 4} else 0.205
         if side == "left":
