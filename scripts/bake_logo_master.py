@@ -16,6 +16,15 @@ from PIL import Image, ImageDraw
 
 GREEN_MIN = 105
 
+# Approved visual reference from the user's live ARC 18–19 spread screenshot.
+# Measured against the visible page-19 sheet:
+# logo width ≈ 138 / 710 = 19.44% of page width
+# outer margin ≈ 22 / 710 = 3.10% of page width
+# top margin ≈ 27 / 501 = 5.39% of page height
+TARGET_WIDTH_RATIO = 0.1944
+TARGET_OUTER_RATIO = 0.0310
+TARGET_TOP_RATIO = 0.0539
+
 
 def clamp(v, lo, hi):
     return max(lo, min(hi, v))
@@ -71,10 +80,9 @@ def logo_master_from_arc(page19: Path):
 
     return {
         "image": logo,
-        "width_ratio": logo.width / W,
-        "height_ratio": logo.height / H,
-        "outer_ratio": (W - abs_x1) / W,
-        "top_ratio": abs_y0 / H,
+        "source_width_ratio": logo.width / W,
+        "source_outer_ratio": (W - abs_x1) / W,
+        "source_top_ratio": abs_y0 / H,
     }
 
 
@@ -94,12 +102,13 @@ def apply_logo_master(path: Path, physical: int, master):
     else:
         return
 
-    target_w = max(1, round(W * master["width_ratio"]))
-    target_h = max(1, round(H * master["height_ratio"]))
+    # Use the exact visual scale/margins measured from the approved live ARC screenshot.
+    target_w = max(1, round(W * TARGET_WIDTH_RATIO))
+    target_h = max(1, round(target_w * master["image"].height / master["image"].width))
     logo = master["image"].resize((target_w, target_h), Image.Resampling.LANCZOS)
 
-    outer = round(W * master["outer_ratio"])
-    top = round(H * master["top_ratio"])
+    outer = round(W * TARGET_OUTER_RATIO)
+    top = round(H * TARGET_TOP_RATIO)
     x = outer if side == "left" else W - outer - target_w
 
     im.paste(logo, (x, top))
@@ -129,9 +138,10 @@ def main():
             apply_logo_master(thumb, physical, master)
 
     print(
-        "LOGO MASTER pilot baked into pages 04–05 from ARC page 19 "
-        f"(width={master['width_ratio']*100:.2f}% page, "
-        f"outer={master['outer_ratio']*100:.2f}%, top={master['top_ratio']*100:.2f}%)."
+        "LOGO MASTER pilot baked into pages 04–05 using ARC logo artwork "
+        f"at approved live-spread scale (width={TARGET_WIDTH_RATIO*100:.2f}% page, "
+        f"outer={TARGET_OUTER_RATIO*100:.2f}%, top={TARGET_TOP_RATIO*100:.2f}%). "
+        f"Source ARC raster logo was {master['source_width_ratio']*100:.2f}% wide."
     )
 
 
