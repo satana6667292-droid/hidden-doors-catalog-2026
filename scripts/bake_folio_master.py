@@ -272,31 +272,6 @@ def shift_footer_note_right(im: Image.Image, spec):
     im.paste(patch, (tx, sy))
 
 
-def remove_green_folio_candidates(im: Image.Image):
-    """
-    Safety pass after page-specific masks: remove any remaining green folio-like
-    digit fragments in the outer footer zones. This catches historical numbers
-    that moved between page revisions without touching central content.
-    """
-    W, H = im.size
-    for side, x0, y0, x1, y1 in find_green_folio_candidates(im):
-        pad_x = max(4, round(W * 0.004))
-        pad_y = max(3, round(H * 0.004))
-        tx0 = clamp(x0 - pad_x, 0, W - 1)
-        ty0 = clamp(y0 - pad_y, 0, H - 1)
-        tx1 = clamp(x1 + pad_x, tx0 + 1, W)
-        ty1 = clamp(y1 + pad_y, ty0 + 1, H)
-        tw = tx1 - tx0
-        th = ty1 - ty0
-
-        # Copy from the same footer row, toward the page interior.
-        shift = max(round(W * 0.045), tw * 2)
-        src_x = tx0 + shift if side == "left" else tx0 - shift
-        src_x = clamp(src_x, 0, W - tw)
-        patch = im.crop((src_x, ty0, src_x + tw, ty1))
-        im.paste(patch, (tx0, ty0))
-
-
 def audit_no_legacy_green(im: Image.Image, physical: int):
     leftovers = find_green_folio_candidates(im)
     if leftovers:
