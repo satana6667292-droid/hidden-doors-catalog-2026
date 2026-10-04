@@ -94,7 +94,7 @@ body.hd-public-view{margin:0;background:var(--bg);color:var(--ink);font-family:M
 
 /* 59 mm natural veneer — approved production-correct aluminum edge.
    The source render is preserved; only the visible door edge is corrected. */
-.hdp-p36-work-mask{position:absolute;left:39.7%;top:.2%;width:11.2%;height:5.7%;background:#fff;z-index:3;pointer-events:none}
+.hdp-p36-work-mask{position:absolute;left:43.8%;top:.4%;width:12.8%;height:5.3%;background:#fff;z-index:3;pointer-events:none}
 .hdp-p36-edge{position:absolute;display:block;z-index:3;pointer-events:none;background:linear-gradient(90deg,#080808 0%,#202020 48%,#090909 100%);box-shadow:inset .05cqw 0 .04cqw #5558}
 .hdp-p36-edge-main{left:36.05%;top:19.15%;width:.55%;height:62.9%}
 .hdp-p36-edge-thumb{left:63.45%;top:35.35%;width:.42%;height:20.1%}
