@@ -12,7 +12,8 @@ Approved rules:
 - 8 mm from the outer trim edge;
 - 5 mm from the bottom trim edge;
 - even public pages -> bottom-left; odd public pages -> bottom-right;
-- all historical embedded page numbers are removed first.
+- all historical embedded page numbers are removed only by explicit page masks;
+- automatic green-content deletion is forbidden.
 """
 from __future__ import annotations
 
@@ -63,6 +64,16 @@ LEGACY_MASKS = {
     42:[(93.2,93.0,2.9,2.8),(96.3,96.1,3.7,3.6)],
     43:[(94.0,93.6,3.8,3.6)],
     44:[(91.7,91.3,3.9,3.7)],
+}
+
+# Footer notes on these even public pages start inside the fixed left folio safe zone.
+# Move the already-rendered raster note to the right; do not move FOLIO MASTER itself.
+# Values: x, y, width, height, horizontal shift — all in page percentages.
+FOOTER_NOTE_SHIFTS = {
+    33:(2.0,95.8,58.0,3.0,5.5),  # public 30 — зеркало и стекло
+    35:(2.0,95.8,58.0,3.0,5.5),  # public 32 — HPL
+    37:(2.0,95.8,58.0,3.0,5.5),  # public 34 — керамогранит
+    39:(2.0,95.8,58.0,3.0,5.5),  # public 36 — МДФ с фрезеровкой
 }
 
 # Full-bleed interior pages need a tiny optical halo around the green number.
@@ -163,8 +174,11 @@ def find_green_folio_candidates(im: Image.Image):
     digit/stroke components. Single tiny green arrows/bullets are ignored.
     """
     W, H = im.size
-    y0 = round(H * 0.80)
-    side_w = round(W * 0.22)
+    # Safety audit only: inspect the actual outer footer folio zones.
+    # Do not scan the lower 20% of the page: technical dimensions such as
+    # "450–1000 мм" can legitimately be green and must never be auto-erased.
+    y0 = round(H * 0.93)
+    side_w = round(W * 0.14)
     found = []
 
     for side, rx0 in (("left", 0), ("right", W - side_w)):
@@ -232,6 +246,31 @@ def find_green_folio_candidates(im: Image.Image):
             found.append((side, rx0 + gx0, y0 + gy0, rx0 + gx1, y0 + gy1))
 
     return found
+
+def shift_footer_note_right(im: Image.Image, spec):
+    """
+    Preserve the rasterized footer note but move it horizontally out of the
+    fixed FOLIO MASTER safe zone. This is page-specific mechanical placement,
+    not retyping and not a folio position override.
+    """
+    W, H = im.size
+    x, y, w, h, dx = spec
+    sx = clamp(round(W * x / 100), 0, W - 1)
+    sy = clamp(round(H * y / 100), 0, H - 1)
+    sw = clamp(round(W * w / 100), 1, W - sx)
+    sh = clamp(round(H * h / 100), 1, H - sy)
+    tx = clamp(sx + round(W * dx / 100), 0, W - sw)
+
+    patch = im.crop((sx, sy, sx + sw, sy + sh))
+
+    # Sample the same footer row well to the right of the note, where these
+    # pages are blank paper, so the cleanup remains optically invisible.
+    bx0 = clamp(round(W * 0.70), 0, W - 2)
+    bx1 = clamp(round(W * 0.82), bx0 + 1, W)
+    bg = median_rgb(im, (bx0, sy, bx1, sy + sh))
+    ImageDraw.Draw(im).rectangle((sx, sy, sx + sw, sy + sh), fill=bg)
+    im.paste(patch, (tx, sy))
+
 
 def remove_green_folio_candidates(im: Image.Image):
     """
@@ -302,12 +341,12 @@ def process_image(path: Path, physical: int, public_no: int, font_path: Path):
     for mask in LEGACY_MASKS.get(physical, []):
         repair_mask(im, mask)
 
-    # Second pass: automatically catch any green historical number that survived
-    # because a page revision moved it slightly.
-    remove_green_folio_candidates(im)
+    # Keep page-specific footer notes out of the fixed folio safe zone.
+    if physical in FOOTER_NOTE_SHIFTS:
+        shift_footer_note_right(im, FOOTER_NOTE_SHIFTS[physical])
 
-    # Release blocker: there must be no folio-like green remnant BEFORE the new
-    # master number is written. If there is, deploy fails instead of publishing a duplicate.
+    # Release blocker: audit is read-only. Never auto-delete green content based
+    # on visual similarity; all historical folios must be handled explicitly by LEGACY_MASKS.
     audit_no_legacy_green(im, physical)
 
     if physical != 1:
