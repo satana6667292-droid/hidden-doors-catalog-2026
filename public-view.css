@@ -88,12 +88,5 @@ body.hd-public-view{margin:0;background:var(--bg);color:var(--ink);font-family:M
 
 /* 36 mm collection templates — original approved content + shared logo shell. */
 .hdp-collection-sheet{--collection-bg:#f8f7f3;background:var(--collection-bg)}
-.hdp-collection-logo-mask,
-.hdp-collection-tech-mask{position:absolute;display:block;background:var(--collection-bg);z-index:2;pointer-events:none}
-.hdp-collection-sheet.side-left .hdp-collection-logo-mask{left:.5%;top:.4%;width:25.5%;height:12.2%}
-.hdp-collection-sheet.side-right .hdp-collection-logo-mask{right:.5%;top:.4%;width:25.5%;height:12.2%}
-.hdp-collection-logo{position:absolute;top:5.645%;width:19.32%;height:auto;z-index:3;pointer-events:none}
-.hdp-collection-sheet.side-left .hdp-collection-logo{left:3.19%}
-.hdp-collection-sheet.side-right .hdp-collection-logo{right:3.19%}
-.hdp-collection-tech-mask{left:25%;top:0;width:50%;height:4.2%}
+.hdp-collection-tech-mask{position:absolute;display:block;background:var(--collection-bg);z-index:2;pointer-events:none;left:25%;top:0;width:50%;height:4.2%}
 .hdp-light-live .hdp-folio-sheet{width:100%;box-shadow:0 20px 70px #0009}
