@@ -157,36 +157,81 @@ def _components(mask: Image.Image):
 
 def find_green_folio_candidates(im: Image.Image):
     """
-    Detect small green digit-like remnants near the outer bottom corners.
-    The search deliberately ignores the middle 56% of the page so dimensions,
-    cards and body accents are not touched.
+    Detect green historical folio clusters near the outer bottom corners.
+
+    Important: a folio is text, so it normally contains at least two nearby
+    digit/stroke components. Single tiny green arrows/bullets are ignored.
     """
     W, H = im.size
     y0 = round(H * 0.80)
     side_w = round(W * 0.22)
     found = []
-    for side, x0 in (("left", 0), ("right", W - side_w)):
-        region = im.crop((x0, y0, x0 + side_w, H))
+
+    for side, rx0 in (("left", 0), ("right", W - side_w)):
+        region = im.crop((rx0, y0, rx0 + side_w, H))
         mask = _green_mask(region)
+
+        parts = []
         for bx0, by0, bx1, by1, area in _components(mask):
             bw = bx1 - bx0
             bh = by1 - by0
-            # digit/short-number geometry only: not long rules, dimensions or cards
             if bh < max(4, round(H * 0.004)) or bh > round(H * 0.045):
                 continue
-            if bw < 2 or bw > round(W * 0.075):
+            if bw < 2 or bw > round(W * 0.050):
                 continue
             if area < 8:
                 continue
             ratio = bw / max(1, bh)
             if ratio > 4.8:
                 continue
-            # Green dots/bullets are too small to be a folio.
-            if bw < round(W * 0.0025) and bh < round(H * 0.010):
-                continue
-            found.append((side, x0 + bx0, y0 + by0, x0 + bx1, y0 + by1))
-    return found
+            parts.append([bx0, by0, bx1, by1, area])
 
+        # Group nearby glyphs into a number/range cluster. This avoids treating
+        # a single technical arrow or green bullet as an old page number.
+        groups = []
+        used = [False] * len(parts)
+        for i, p in enumerate(parts):
+            if used[i]:
+                continue
+            group = [p]
+            used[i] = True
+            changed = True
+            while changed:
+                changed = False
+                gx0 = min(x[0] for x in group); gy0 = min(x[1] for x in group)
+                gx1 = max(x[2] for x in group); gy1 = max(x[3] for x in group)
+                gh = max(1, gy1 - gy0)
+                for j, q in enumerate(parts):
+                    if used[j]:
+                        continue
+                    qcx = (q[0] + q[2]) / 2
+                    qcy = (q[1] + q[3]) / 2
+                    # close horizontally and on the same baseline
+                    hgap = max(0, max(q[0] - gx1, gx0 - q[2]))
+                    same_line = (gy0 - gh * 0.75) <= qcy <= (gy1 + gh * 0.75)
+                    if same_line and hgap <= max(round(W * 0.012), gh * 2.2):
+                        group.append(q)
+                        used[j] = True
+                        changed = True
+            groups.append(group)
+
+        for group in groups:
+            gx0 = min(x[0] for x in group); gy0 = min(x[1] for x in group)
+            gx1 = max(x[2] for x in group); gy1 = max(x[3] for x in group)
+            gw = gx1 - gx0
+            gh = gy1 - gy0
+            total_area = sum(x[4] for x in group)
+
+            # A real folio/range normally has 2+ glyph components. Permit one
+            # merged component only when it is clearly wider than one glyph.
+            if len(group) < 2 and not (gw >= gh * 1.35 and total_area >= 20):
+                continue
+            if gw > round(W * 0.090) or gh > round(H * 0.050):
+                continue
+
+            found.append((side, rx0 + gx0, y0 + gy0, rx0 + gx1, y0 + gy1))
+
+    return found
 
 def remove_green_folio_candidates(im: Image.Image):
     """
