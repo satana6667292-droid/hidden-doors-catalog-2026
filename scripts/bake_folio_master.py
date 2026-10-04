@@ -79,6 +79,77 @@ FOOTER_NOTE_SHIFTS = {
 # Full-bleed interior pages need a tiny optical halo around the green number.
 PHOTO_PAGES = {6, 9, 10, 13, 14, 17, 18, 21}
 
+# LOGO MASTER S — pilot only on spread 04–05.
+# User approved the smallest/most restrained logo option.
+LOGO_MASTER_TEST_PAGES = {4, 5}
+LOGO_WIDTH_MM = 47.0
+LOGO_OUTER_MM = 13.5
+LOGO_TOP_MM = 9.5
+LOGO_RULE_WIDTH_MM = 16.0
+LOGO_RULE_HEIGHT_MM = 1.2
+LOGO_RULE_GAP_MM = 4.0
+
+
+def mm_x(W, mm):
+    return round(W * mm / 297)
+
+
+def mm_y(H, mm):
+    return round(H * mm / 210)
+
+
+def clear_pct(im: Image.Image, x, y, w, h, fill=WHITE):
+    W, H = im.size
+    x0 = clamp(round(W * x / 100), 0, W - 1)
+    y0 = clamp(round(H * y / 100), 0, H - 1)
+    x1 = clamp(round(W * (x + w) / 100), x0 + 1, W)
+    y1 = clamp(round(H * (y + h) / 100), y0 + 1, H)
+    ImageDraw.Draw(im).rectangle((x0, y0, x1, y1), fill=fill)
+
+
+def apply_logo_master_s(im: Image.Image, physical: int, logo_path: Path):
+    """Pilot LOGO MASTER S on pages 04–05 only; all other page content stays untouched."""
+    if physical not in LOGO_MASTER_TEST_PAGES:
+        return
+
+    W, H = im.size
+
+    # Remove the historical logo treatment in the header only.
+    if physical == 4:
+        # Covers old oversized logo and any legacy tagline beneath it.
+        clear_pct(im, 2.5, 2.0, 27.0, 20.5)
+        side = "left"
+    else:
+        # Page 05 revisions exist with either a left green dash or an old right logo.
+        clear_pct(im, 2.0, 3.0, 10.0, 7.0)
+        clear_pct(im, 75.0, 2.0, 23.0, 16.5)
+        side = "right"
+
+    logo = Image.open(logo_path).convert("RGBA")
+    target_w = mm_x(W, LOGO_WIDTH_MM)
+    target_h = max(1, round(target_w * logo.height / logo.width))
+    logo = logo.resize((target_w, target_h), Image.Resampling.LANCZOS)
+
+    outer = mm_x(W, LOGO_OUTER_MM)
+    top = mm_y(H, LOGO_TOP_MM)
+    if side == "left":
+        x = outer
+        rule_x0 = x
+    else:
+        x = W - outer - target_w
+        rule_x0 = W - outer - mm_x(W, LOGO_RULE_WIDTH_MM)
+
+    im.paste(logo, (x, top), logo)
+
+    rule_y = top + target_h + mm_y(H, LOGO_RULE_GAP_MM)
+    rule_h = max(1, mm_y(H, LOGO_RULE_HEIGHT_MM))
+    rule_w = max(1, mm_x(W, LOGO_RULE_WIDTH_MM))
+    ImageDraw.Draw(im).rounded_rectangle(
+        (rule_x0, rule_y, rule_x0 + rule_w, rule_y + rule_h),
+        radius=max(1, rule_h // 2),
+        fill=GREEN,
+    )
+
 
 def public_sequence():
     physical = [p for p in range(1, 45) if p not in HIDDEN_PHYSICAL]
@@ -309,12 +380,15 @@ def add_folio(im: Image.Image, number: str, side: str, font_path: Path, halo: bo
     )
 
 
-def process_image(path: Path, physical: int, public_no: int, font_path: Path):
+def process_image(path: Path, physical: int, public_no: int, font_path: Path, logo_path: Path):
     im = Image.open(path).convert("RGB")
 
     # First pass: audited page-specific masks (also catches gray range labels such as 06–07).
     for mask in LEGACY_MASKS.get(physical, []):
         repair_mask(im, mask)
+
+    # LOGO MASTER S pilot: only spread 04–05 for approval.
+    apply_logo_master_s(im, physical, logo_path)
 
     # Keep page-specific footer notes out of the fixed folio safe zone.
     if physical in FOOTER_NOTE_SHIFTS:
@@ -336,12 +410,16 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--site", required=True, help="Generated catalog site directory")
     ap.add_argument("--font", required=True, help="Manrope SemiBold font path")
+    ap.add_argument("--logo", required=True, help="Hidden Doors transparent logo PNG")
     args = ap.parse_args()
 
     site = Path(args.site)
     font_path = Path(args.font)
+    logo_path = Path(args.logo)
     if not font_path.exists():
         raise SystemExit(f"FOLIO MASTER: font not found: {font_path}")
+    if not logo_path.exists():
+        raise SystemExit(f"LOGO MASTER: logo not found: {logo_path}")
 
     sequence = public_sequence()
 
@@ -352,10 +430,10 @@ def main():
 
         if not page.exists():
             raise SystemExit(f"FOLIO MASTER: missing page asset: {page}")
-        process_image(page, physical, public_no, font_path)
+        process_image(page, physical, public_no, font_path, logo_path)
 
         if thumb.exists():
-            process_image(thumb, physical, public_no, font_path)
+            process_image(thumb, physical, public_no, font_path, logo_path)
 
     print(f"FOLIO MASTER v1 baked into {len(sequence)} included pages (cover unnumbered).")
 
