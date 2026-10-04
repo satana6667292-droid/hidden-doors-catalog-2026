@@ -45,6 +45,10 @@ NO_LOGO_36_INTERIORS = {6, 9, 10, 13, 14, 17, 18, 21}
 HIDDEN_PHYSICAL = {24, 25, 26}
 COVER_PAGES = {1, 44}
 
+# Collection model pages use a larger historical header treatment. Clear the
+# whole outer header block so legacy green dashes/partial logos cannot survive.
+COLLECTION_MODEL_PAGES = {7, 8, 11, 12, 15, 16, 19, 20}
+
 
 def clamp(v, lo, hi):
     return max(lo, min(hi, v))
@@ -70,13 +74,21 @@ def clear_logo_zone(im: Image.Image, physical: int, side: str):
     W, H = im.size
     bg = sample_header_background(im)
 
-    # Early technical pages used a taller legacy logo/tagline treatment.
-    y_ratio = 0.235 if physical in {2, 4} else 0.185
-
-    if side == "left":
-        x0, x1 = 0, round(W * 0.315)
+    # Collection model pages had wider/taller historical header graphics.
+    # Clear the full outer block before placing the master so no green dashes,
+    # clipped logo pieces or antialiasing remnants can remain.
+    if physical in COLLECTION_MODEL_PAGES:
+        y_ratio = 0.255
+        if side == "left":
+            x0, x1 = 0, round(W * 0.405)
+        else:
+            x0, x1 = round(W * 0.595), W
     else:
-        x0, x1 = round(W * 0.685), W
+        y_ratio = 0.235 if physical in {2, 4} else 0.205
+        if side == "left":
+            x0, x1 = 0, round(W * 0.345)
+        else:
+            x0, x1 = round(W * 0.655), W
 
     y0, y1 = 0, round(H * y_ratio)
     ImageDraw.Draw(im).rectangle((x0, y0, x1, y1), fill=bg)
