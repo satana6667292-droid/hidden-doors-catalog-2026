@@ -52,6 +52,7 @@ jobs:
           # their left technical pages.
           python3 scripts/remove_page28_visual_heading.py --site _site
           python3 scripts/remove_page30_visual_heading.py --site _site
+          python3 scripts/audit_sliding_spread.py --site _site
 
           # Catalog-wide visual rule: no decorative green header bars.
           python3 scripts/remove_header_accent_bars.py --site _site
