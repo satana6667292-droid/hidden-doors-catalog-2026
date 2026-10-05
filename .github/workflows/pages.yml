@@ -51,6 +51,7 @@ jobs:
           # The viewer already provides the canonical black page number below
           # every sheet. Remove every printed/internal folio from the page art.
           python3 scripts/remove_all_internal_folios.py --site _site
+          python3 scripts/audit_catalog_footer.py --site _site
 
           # Build full-catalog visual QA sheets on every deploy. These are
           # inspected before a catalog change is handed back for review.
@@ -83,6 +84,7 @@ jobs:
           test -s _site/catalog-master.js
           test -s _site/assets/pages/page-032.webp
           test -s _site/_qa/contact-01.webp
+          test -s _site/_qa/footer-audit.webp
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
