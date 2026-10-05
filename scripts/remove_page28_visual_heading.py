@@ -56,7 +56,7 @@ def process(path: Path):
     gx0 = round(W * 0.565)
     gy0 = round(H * 0.205)
     gx1 = round(W * 0.715)
-    gy1 = round(H * 0.222)
+    gy1 = round(H * 0.240)
     draw.rectangle((gx0, gy0, gx1, gy1), fill=bg)
 
     im.save(path, "WEBP", quality=96, method=6)
