@@ -98,6 +98,11 @@ def clear_logo_zone(im: Image.Image, physical: int, side: str):
         # the title so the leading "42" is preserved.
         y_ratio = 0.205
         x0, x1 = 0, round(W * 0.280)
+    elif physical == 31 and side == "left":
+        # Page 31 accumulated a legacy green fragment under the new left logo.
+        # Clear only the compact logo zone; stop above the 59 mm title.
+        y_ratio = 0.118
+        x0, x1 = 0, round(W * 0.285)
     elif physical == 32:
         # The top-right materials card begins high on this page. Clean only the
         # historical logo header; never paint over the card below it.
@@ -160,7 +165,12 @@ def process_image(path: Path, physical: int, logo_src: Image.Image):
     # position first. Do not clear the new side: there was no old logo there
     # and the title/content below must remain untouched.
     old_side = OLD_LOGO_SIDE.get(physical)
-    if old_side and old_side != side:
+    if physical == 31:
+        # Clear both the historical right placement and the contaminated left
+        # master zone before placing the clean logo.
+        clear_logo_zone(im, physical, "right")
+        clear_logo_zone(im, physical, "left")
+    elif old_side and old_side != side:
         clear_logo_zone(im, physical, old_side)
     elif physical != 30:
         clear_logo_zone(im, physical, side)
