@@ -48,6 +48,9 @@ jobs:
           python3 -m pip install --quiet Pillow
           python3 scripts/bake_logo_master.py --site _site
 
+          # Upgrade the 59 mm material previews to realistic swatches.
+          python3 scripts/enhance_page32_materials.py --site _site
+
           # Remove duplicate visual-page headings while keeping titles on
           # their left technical pages.
           python3 scripts/remove_page28_visual_heading.py --site _site
