@@ -5,7 +5,7 @@
 
   const pid=p=>Number(p.physicalIndex??p.id);
   const pad=n=>String(n).padStart(3,'0');
-  const ASSET_V='master34-logo-42-approved';;;;;;
+  const ASSET_V='master35-no-internal-folios';;;;;;;
   const pageSrc=p=>`assets/pages/page-${pad(pid(p))}.webp?v=${ASSET_V}`;
   const thumbSrc=p=>`assets/thumbs/page-${pad(pid(p))}.webp?v=${ASSET_V}`;
   const byId=new Map(raw.map(p=>[pid(p),p]));
