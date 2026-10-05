@@ -48,6 +48,10 @@ jobs:
           python3 -m pip install --quiet Pillow
           python3 scripts/bake_logo_master.py --site _site
 
+          # The viewer already provides the canonical black page number below
+          # every sheet. Remove every printed/internal folio from the page art.
+          python3 scripts/remove_all_internal_folios.py --site _site
+
           # Build full-catalog visual QA sheets on every deploy. These are
           # inspected before a catalog change is handed back for review.
           python3 scripts/build_catalog_contact_sheets.py --site _site
