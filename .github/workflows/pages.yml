@@ -48,8 +48,10 @@ jobs:
           python3 -m pip install --quiet Pillow
           python3 scripts/bake_logo_master.py --site _site
 
-          # Remove only the duplicate heading from public 25 / source page 28.
+          # Remove duplicate visual-page headings while keeping titles on
+          # their left technical pages.
           python3 scripts/remove_page28_visual_heading.py --site _site
+          python3 scripts/remove_page30_visual_heading.py --site _site
 
           # Catalog-wide visual rule: no decorative green header bars.
           python3 scripts/remove_header_accent_bars.py --site _site
