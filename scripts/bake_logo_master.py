@@ -34,7 +34,7 @@ PAGE_SIDES = {
     15:"right", 16:"left", 19:"right", 20:"left",
     22:"left", 23:"right",
     27:"left", 28:"right", 29:"left", 30:"right",
-    31:"right", 32:"right", 33:"right", 34:"right",
+    31:"left", 32:"right", 33:"right", 34:"right",
     35:"right", 36:"right", 37:"right", 38:"right",
     39:"right", 41:"right", 42:"right",
 }
@@ -53,7 +53,7 @@ COLLECTION_MODEL_PAGES = {7, 8, 11, 12, 15, 16, 19, 20}
 # Pages 27 and 29 historically had the logo on the right, but the approved
 # layout places it on the left. Clear only the old right-side logo zone before
 # placing the new master. Page 30 had no logo and receives one on the right.
-OLD_LOGO_SIDE = {27: "right", 29: "right"}
+OLD_LOGO_SIDE = {27: "right", 29: "right", 31: "right"}
 
 
 def clamp(v, lo, hi):
@@ -98,6 +98,11 @@ def clear_logo_zone(im: Image.Image, physical: int, side: str):
         # the title so the leading "42" is preserved.
         y_ratio = 0.205
         x0, x1 = 0, round(W * 0.280)
+    elif physical == 32:
+        # The top-right materials card begins high on this page. Clean only the
+        # historical logo header; never paint over the card below it.
+        y_ratio = 0.135
+        x0, x1 = round(W * 0.720), W
     elif physical == 38:
         # This source revision placed a fragment of the historical logo farther
         # inward. Clear that fragment without touching the title/work badge below.
