@@ -54,9 +54,9 @@ def process(path: Path):
     # Remove the damaged remnant of the old green "ВИЗУАЛЬНОЕ РЕШЕНИЕ"
     # label above "Две створки — одна плоскость". Keep the black title intact.
     gx0 = round(W * 0.565)
-    gy0 = round(H * 0.216)
+    gy0 = round(H * 0.205)
     gx1 = round(W * 0.715)
-    gy1 = round(H * 0.234)
+    gy1 = round(H * 0.222)
     draw.rectangle((gx0, gy0, gx1, gy1), fill=bg)
 
     im.save(path, "WEBP", quality=96, method=6)
