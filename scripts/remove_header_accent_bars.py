@@ -108,6 +108,15 @@ def remove_bars(im: Image.Image):
 def process(path: Path):
     im=Image.open(path).convert("RGB")
     removed=remove_bars(im)
+
+    # Release guard: after cleanup there must be no remaining decorative bar
+    # matching the same catalog-wide signature.
+    W,H=im.size
+    header=im.crop((0,0,W,round(H*0.22)))
+    leftovers=[c for c in components(green_mask(header)) if is_accent_bar(c,W,H)]
+    if leftovers:
+        raise RuntimeError(f"HEADER ACCENTS QA failed for {path.name}: {leftovers}")
+
     im.save(path,"WEBP",quality=96,method=6)
     return removed
 
