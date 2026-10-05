@@ -48,7 +48,17 @@ def process(path: Path):
     x1 = round(W * 0.625)
     y1 = round(H * 0.112)
 
-    ImageDraw.Draw(im).rectangle((x0, y0, x1, y1), fill=bg)
+    draw = ImageDraw.Draw(im)
+    draw.rectangle((x0, y0, x1, y1), fill=bg)
+
+    # Remove the damaged remnant of the old green "ВИЗУАЛЬНОЕ РЕШЕНИЕ"
+    # label above "Две створки — одна плоскость". Keep the black title intact.
+    gx0 = round(W * 0.565)
+    gy0 = round(H * 0.216)
+    gx1 = round(W * 0.715)
+    gy1 = round(H * 0.234)
+    draw.rectangle((gx0, gy0, gx1, gy1), fill=bg)
+
     im.save(path, "WEBP", quality=96, method=6)
 
 
