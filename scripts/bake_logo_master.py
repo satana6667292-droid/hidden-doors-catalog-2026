@@ -129,14 +129,17 @@ def clean_logo_rgba():
     return logo
 
 
-def place_master_logo(im: Image.Image, side: str, logo_src: Image.Image):
+def place_master_logo(im: Image.Image, side: str, logo_src: Image.Image, physical: int):
     W, H = im.size
     target_w = max(1, round(W * TARGET_WIDTH_RATIO))
     target_h = max(1, round(target_w * logo_src.height / logo_src.width))
     logo = logo_src.resize((target_w, target_h), Image.Resampling.LANCZOS)
 
     outer = round(W * TARGET_OUTER_RATIO)
-    top = round(H * TARGET_TOP_RATIO)
+    # Page 31 has a higher title than the other technical pages. Keep the
+    # approved master size but lift the logo so it cannot overlap the title.
+    top_ratio = 0.030 if physical == 31 else TARGET_TOP_RATIO
+    top = round(H * top_ratio)
     x = outer if side == "left" else W - outer - target_w
 
     # Alpha compositing is critical: only logo pixels are placed, no background rectangle.
@@ -162,7 +165,7 @@ def process_image(path: Path, physical: int, logo_src: Image.Image):
     elif physical != 30:
         clear_logo_zone(im, physical, side)
 
-    im = place_master_logo(im, side, logo_src)
+    im = place_master_logo(im, side, logo_src, physical)
     im.save(path, "WEBP", quality=96, method=6)
     return True
 
