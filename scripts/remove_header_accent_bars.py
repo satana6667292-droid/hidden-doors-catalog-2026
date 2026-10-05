@@ -81,15 +81,40 @@ def is_accent_bar(comp, W, H):
         return False
     return True
 
-def remove_bars(im: Image.Image):
+def detect_bars(im: Image.Image):
+    """Detect bars on a 1/4-scale header for speed; return full-res boxes."""
     W,H=im.size
     header_h=round(H*0.22)
-    crop=im.crop((0,0,W,header_h))
-    comps=[c for c in components(green_mask(crop)) if is_accent_bar(c,W,H)]
+    scale=4
+    sw=max(1,W//scale)
+    sh=max(1,header_h//scale)
+    small=im.crop((0,0,W,header_h)).resize((sw,sh),Image.Resampling.BILINEAR)
+    comps=components(green_mask(small))
 
+    boxes=[]
+    for x0,y0,x1,y1,n in comps:
+        # Evaluate geometry in full-resolution equivalents.
+        fx0=x0*scale; fy0=y0*scale
+        fx1=min(W,x1*scale); fy1=min(header_h,y1*scale)
+        bw=fx1-fx0; bh=fy1-fy0
+        if bw < W*0.022 or bw > W*0.135:
+            continue
+        if bh < max(2,H*0.0015) or bh > H*0.022:
+            continue
+        if bw/max(1,bh) < 4.8:
+            continue
+        fill=n/max(1,(x1-x0)*(y1-y0))
+        if fill < 0.35:
+            continue
+        boxes.append((fx0,fy0,fx1,fy1))
+    return boxes
+
+def remove_bars(im: Image.Image):
+    W,H=im.size
     removed=[]
     draw=ImageDraw.Draw(im)
-    for x0,y0,x1,y1,n in comps:
+
+    for x0,y0,x1,y1 in detect_bars(im):
         pad=max(2,round(W*.0015))
         ax0=max(0,x0-pad); ay0=max(0,y0-pad)
         ax1=min(W,x1+pad); ay1=min(H,y1+pad)
@@ -111,9 +136,7 @@ def process(path: Path):
 
     # Release guard: after cleanup there must be no remaining decorative bar
     # matching the same catalog-wide signature.
-    W,H=im.size
-    header=im.crop((0,0,W,round(H*0.22)))
-    leftovers=[c for c in components(green_mask(header)) if is_accent_bar(c,W,H)]
+    leftovers=detect_bars(im)
     if leftovers:
         raise RuntimeError(f"HEADER ACCENTS QA failed for {path.name}: {leftovers}")
 
