@@ -5,7 +5,7 @@
 
   const pid=p=>Number(p.physicalIndex??p.id);
   const pad=n=>String(n).padStart(3,'0');
-  const ASSET_V='master47-page28-clean';;;;;;;;;;;;;;;;;;;
+  const ASSET_V='master48-page28-final-clean';;;;;;;;;;;;;;;;;;;;
   const pageSrc=p=>`assets/pages/page-${pad(pid(p))}.webp?v=${ASSET_V}`;
   const thumbSrc=p=>`assets/thumbs/page-${pad(pid(p))}.webp?v=${ASSET_V}`;
   const byId=new Map(raw.map(p=>[pid(p),p]));
