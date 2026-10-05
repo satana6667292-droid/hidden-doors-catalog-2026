@@ -122,14 +122,19 @@ def process(path, physical, public_no):
 
     # First remove any older embedded folio/range label.
     if physical in COLLECTION_FOOTER_SIDE:
-        clear_collection_footer_box(im, COLLECTION_FOOTER_SIDE[physical])
+        # Collection sheets use one flat footer corner. Clear it once at the end
+        # so the standard master-folio cleanup cannot copy card text back into it.
+        pass
     else:
         for mask in LEGACY_MASKS.get(physical,[]):
             repair_mask(im,mask)
 
     # Then remove the global green FOLIO MASTER number itself.
     if physical != 1:
-        repair_mask(im,master_mask(public_no))
+        if physical in COLLECTION_FOOTER_SIDE:
+            clear_collection_footer_box(im, COLLECTION_FOOTER_SIDE[physical])
+        else:
+            repair_mask(im,master_mask(public_no))
 
     im.save(path,"WEBP",quality=96,method=6)
 
