@@ -20,6 +20,15 @@ import statistics
 
 HIDDEN_PHYSICAL={24,25,26}
 
+# Audited bars that sit close to title/status geometry and can merge with nearby
+# green pixels in generic component detection. Percentages: x, y, w, h.
+EXPLICIT_BAR_MASKS={
+    33:[(1.8,2.8,7.0,1.8)],   # 59 mm — mirror and glass
+    34:[(1.8,2.8,7.0,1.8)],   # 59 mm — bamboo
+    38:[(25.8,1.7,5.2,1.7)],  # 59 mm — artificial stone
+    43:[(3.2,6.6,6.4,1.8)],   # contacts/catalog/configurator
+}
+
 def pages():
     return [p for p in range(1,45) if p not in HIDDEN_PHYSICAL]
 
@@ -81,6 +90,24 @@ def is_accent_bar(comp, W, H):
         return False
     return True
 
+def clear_explicit_masks(im: Image.Image, masks):
+    W,H=im.size
+    draw=ImageDraw.Draw(im)
+    cleared=[]
+    for x,y,w,h in masks:
+        x0=max(0,round(W*x/100)); y0=max(0,round(H*y/100))
+        x1=min(W,round(W*(x+w)/100)); y1=min(H,round(H*(y+h)/100))
+        rp=max(4,round(W*.004))
+        bg=median_rgb(im,[
+            (max(0,x0-rp*2),max(0,y0-rp),x0,min(H,y1+rp)),
+            (x1,max(0,y0-rp),min(W,x1+rp*2),min(H,y1+rp)),
+            (max(0,x0-rp),max(0,y0-rp*2),min(W,x1+rp),y0),
+            (max(0,x0-rp),y1,min(W,x1+rp),min(H,y1+rp*2)),
+        ])
+        draw.rectangle((x0,y0,x1,y1),fill=bg)
+        cleared.append((x0,y0,x1,y1))
+    return cleared
+
 def detect_bars(im: Image.Image):
     """Detect bars on a 1/4-scale header for speed; return full-res boxes."""
     W,H=im.size
@@ -130,9 +157,11 @@ def remove_bars(im: Image.Image):
         removed.append((ax0,ay0,ax1,ay1))
     return removed
 
-def process(path: Path):
+def process(path: Path, physical: int):
     im=Image.open(path).convert("RGB")
-    removed=remove_bars(im)
+    removed=[]
+    removed.extend(clear_explicit_masks(im, EXPLICIT_BAR_MASKS.get(physical,[])))
+    removed.extend(remove_bars(im))
 
     # Release guard: after cleanup there must be no remaining decorative bar
     # matching the same catalog-wide signature.
@@ -157,12 +186,12 @@ def main():
         thumb=site/"assets"/"thumbs"/name
         if not page.exists():
             raise SystemExit(f"HEADER ACCENTS: missing {page}")
-        removed=process(page)
+        removed=process(page,physical)
         if removed:
             touched.append((physical,len(removed)))
             total+=len(removed)
         if thumb.exists():
-            process(thumb)
+            process(thumb,physical)
 
     details=", ".join(f"{p:02d}x{n}" for p,n in touched)
     print(f"HEADER ACCENTS: removed {total} decorative green bars. Pages: {details or 'none'}.")
