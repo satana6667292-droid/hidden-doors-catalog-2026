@@ -20,6 +20,15 @@ import statistics
 
 HIDDEN_PHYSICAL = {24, 25, 26}
 
+# The 36 mm model sheets used small legacy range/page boxes in the outer
+# bottom corner. These sit on a flat warm background, so clear the whole box
+# instead of copying a neighbouring patch (which can drag letters/numbers into
+# the corner and create artifacts like "S", "14", "R").
+COLLECTION_FOOTER_SIDE = {
+    7:"right", 8:"left", 11:"right", 12:"left",
+    15:"right", 16:"left", 19:"right", 20:"left",
+}
+
 # Audited historical folio rectangles from the existing FOLIO MASTER cleanup.
 LEGACY_MASKS = {
     2:[(3.4,92.0,3.6,3.8)],
@@ -63,6 +72,29 @@ def public_sequence():
 def clamp(v,lo,hi):
     return max(lo,min(hi,v))
 
+def median_rgb(im, box):
+    crop=im.crop(box).convert("RGB")
+    px=list(crop.getdata())
+    if not px:
+        return (248,247,243)
+    return tuple(int(statistics.median(ch)) for ch in zip(*px))
+
+def clear_collection_footer_box(im, side):
+    """Erase the complete legacy number/range box on collection model sheets."""
+    W,H=im.size
+    # Sample the flat paper background from the bottom centre gutter.
+    bg=median_rgb(im,(round(W*0.45),round(H*0.965),round(W*0.55),round(H*0.995)))
+    y0=round(H*0.925)
+    y1=H
+    if side=="left":
+        x0=0
+        x1=round(W*0.095)
+    else:
+        x0=round(W*0.905)
+        x1=W
+    from PIL import ImageDraw
+    ImageDraw.Draw(im).rectangle((x0,y0,x1,y1),fill=bg)
+
 def repair_mask(im, mask):
     W,H=im.size
     x,y,w,h=mask
@@ -89,8 +121,11 @@ def process(path, physical, public_no):
     im=Image.open(path).convert("RGB")
 
     # First remove any older embedded folio/range label.
-    for mask in LEGACY_MASKS.get(physical,[]):
-        repair_mask(im,mask)
+    if physical in COLLECTION_FOOTER_SIDE:
+        clear_collection_footer_box(im, COLLECTION_FOOTER_SIDE[physical])
+    else:
+        for mask in LEGACY_MASKS.get(physical,[]):
+            repair_mask(im,mask)
 
     # Then remove the global green FOLIO MASTER number itself.
     if physical != 1:
