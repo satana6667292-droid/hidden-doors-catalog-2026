@@ -8,6 +8,7 @@ Final rules:
 - fully clear the historical logo/header zone before placing the master;
 - fill that zone with the page's own sampled background, so no gray/white patch remains;
 - keep intentional logo-free 36 mm interior/full-bleed pages logo-free;
+- on every normal spread, logo stays on the OUTER edge and title/subtitle stay by the BINDING;
 - cover/back cover and hidden source pages stay untouched.
 """
 from __future__ import annotations
@@ -34,9 +35,9 @@ PAGE_SIDES = {
     15:"right", 16:"left", 19:"right", 20:"left",
     22:"left", 23:"right",
     27:"left", 28:"right", 29:"left", 30:"right",
-    31:"left", 32:"right", 33:"right", 34:"right",
-    35:"right", 36:"right", 37:"right", 38:"right",
-    39:"right", 41:"right", 42:"right",
+    31:"left", 32:"right", 33:"left", 34:"right",
+    35:"left", 36:"right", 37:"left", 38:"right",
+    39:"left", 40:"right", 41:"left", 42:"right", 43:"left",
 }
 
 # These collection interior/full-bleed pages intentionally carry no logo.
@@ -53,11 +54,74 @@ COLLECTION_MODEL_PAGES = {7, 8, 11, 12, 15, 16, 19, 20}
 # Pages 27 and 29 historically had the logo on the right, but the approved
 # layout places it on the left. Clear only the old right-side logo zone before
 # placing the new master. Page 30 had no logo and receives one on the right.
-OLD_LOGO_SIDE = {27: "right", 29: "right", 31: "right"}
+OLD_LOGO_SIDE = {
+    27: "right", 29: "right", 31: "right",
+    33: "right", 35: "right", 37: "right", 39: "right", 41: "right",
+}
+
+# Spread-header master:
+# logo always sits on the outer edge of the spread;
+# title/subtitle always sit on the binding side.
+# These are the visible left pages after the hidden 23A/24/25 sources.
+HEADER_TO_BINDING_PAGES = {31, 33, 35, 37, 39, 41, 43}
+
+# Header search windows are intentionally limited to the title/subtitle area.
+# They exclude body copy and ignore green status badges during pixel detection.
+TITLE_SEARCH_Y = {
+    31: (0.105, 0.225),
+    43: (0.095, 0.205),
+}
 
 
 def clamp(v, lo, hi):
     return max(lo, min(hi, v))
+
+
+def extract_binding_title(im: Image.Image, physical: int):
+    """Extract the existing title + subtitle before any logo/header cleanup."""
+    W, H = im.size
+    y0r, y1r = TITLE_SEARCH_Y.get(physical, (0.050, 0.165))
+    x0, x1 = 0, round(W * 0.67)
+    y0, y1 = round(H * y0r), round(H * y1r)
+
+    src = im.convert("RGB")
+    px = src.load()
+    xs, ys = [], []
+
+    # Titles/subtitles are neutral black/gray. Green status pills are ignored.
+    for y in range(y0, y1):
+        for x in range(x0, x1):
+            r, g, b = px[x, y]
+            if max(r, g, b) < 225 and (max(r, g, b) - min(r, g, b)) < 24:
+                xs.append(x)
+                ys.append(y)
+
+    if not xs:
+        raise RuntimeError(f"LOGO MASTER: title block not detected on physical {physical}")
+
+    pad = max(5, round(W * 0.004))
+    box = (
+        max(0, min(xs) - pad),
+        max(0, min(ys) - pad),
+        min(W, max(xs) + pad + 1),
+        min(H, max(ys) + pad + 1),
+    )
+    return box, im.crop(box)
+
+
+def clear_title_block(im: Image.Image, box):
+    bg = sample_header_background(im)
+    ImageDraw.Draw(im).rectangle(box, fill=bg)
+
+
+def place_title_at_binding(im: Image.Image, title_crop: Image.Image, source_box):
+    """Right-align the original title block to the inner/binding edge of a left page."""
+    W, H = im.size
+    inner = round(W * TARGET_OUTER_RATIO)
+    x = max(0, W - inner - title_crop.width)
+    y = source_box[1]
+    im.paste(title_crop, (x, y))
+    return im
 
 
 def sample_header_background(im: Image.Image):
@@ -161,9 +225,16 @@ def process_image(path: Path, physical: int, logo_src: Image.Image):
 
     im = Image.open(path).convert("RGB")
 
+    # Preserve the original raster title/subtitle before any cleanup.
+    # On every visible LEFT page it will be re-used at the binding edge.
+    title_payload = None
+    if physical in HEADER_TO_BINDING_PAGES:
+        title_payload = extract_binding_title(im, physical)
+        clear_title_block(im, title_payload[0])
+
     # When a page changes logo side, remove the historical logo from its old
-    # position first. Do not clear the new side: there was no old logo there
-    # and the title/content below must remain untouched.
+    # position first. The title is pasted only after all logo cleanup, so the
+    # old right-side logo mask can never erase the relocated title.
     old_side = OLD_LOGO_SIDE.get(physical)
     if physical == 31:
         # Clear both the historical right placement and the contaminated left
@@ -176,6 +247,11 @@ def process_image(path: Path, physical: int, logo_src: Image.Image):
         clear_logo_zone(im, physical, side)
 
     im = place_master_logo(im, side, logo_src, physical)
+
+    if title_payload is not None:
+        source_box, title_crop = title_payload
+        im = place_title_at_binding(im, title_crop, source_box)
+
     im.save(path, "WEBP", quality=96, method=6)
     return True
 
