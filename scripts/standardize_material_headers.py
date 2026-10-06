@@ -2,7 +2,9 @@
 """
 Standardize the approved 59 mm material spread header.
 
-Current approved spread:
+Approved 59 mm spreads:
+- physical 31 / public 28: construction and dimensions, left page;
+- physical 32 / public 29: integrated materials, right page;
 - physical 35 / public 32: HPL, left page;
 - physical 36 / public 33: natural veneer, right page.
 
@@ -28,6 +30,16 @@ FONT_REG_CANDIDATES = [
 ]
 
 HEADERS = {
+    31: {
+        "title": "59 мм — конструкция и размеры",
+        "subtitle": "Алюминиевый каркас · универсальная система полотно + короб",
+        "side": "left",
+    },
+    32: {
+        "title": "59 мм — интегрируемые материалы",
+        "subtitle": "Материал двери может продолжаться на стене",
+        "side": "right",
+    },
     35: {
         "title": "59 мм — HPL-пластик",
         "subtitle": "Интеграция HPL-пластика в полотно скрытой двери",
@@ -51,6 +63,8 @@ INNER_MARGIN = 50
 # Only the old raster title/subtitle area is cleared.
 # Coordinates are stored in the full-page 1600x1132 master and scaled for thumbs.
 CLEAR_BOX = {
+    31: (520, 50, 1600, 180),
+    32: (0, 50, 900, 180),
     35: (780, 50, 1600, 175),
     36: (0, 50, 850, 175),
 }
@@ -129,7 +143,7 @@ def main():
             process(thumb, physical, bold, regular)
 
     print(
-        "MATERIAL HEADER: standardized physical pages 35-36; "
+        "MATERIAL HEADER: standardized physical pages 31-32 and 35-36; "
         "same bold title, regular subtitle, size and baseline."
     )
 
