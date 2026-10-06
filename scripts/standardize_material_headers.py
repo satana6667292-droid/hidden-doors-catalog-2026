@@ -63,7 +63,7 @@ INNER_MARGIN = 50
 # Only the old raster title/subtitle area is cleared.
 # Coordinates are stored in the full-page 1600x1132 master and scaled for thumbs.
 CLEAR_BOX = {
-    31: (520, 45, 1600, 235),
+    31: (520, 45, 1600, 244),
     32: (0, 50, 900, 180),
     35: (780, 50, 1600, 175),
     36: (0, 50, 850, 175),
