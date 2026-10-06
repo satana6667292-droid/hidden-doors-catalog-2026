@@ -44,8 +44,15 @@ jobs:
             cp "/tmp/page-${n}.webp" "_site/assets/thumbs/page-${n}.webp"
           done
 
-          # LOGO MASTER pilot: use the actual ARC page 19 logo raster as the exact size/placement reference.
+          # Install imaging runtime once for deterministic catalog masters.
           python3 -m pip install --quiet Pillow
+
+          # MATERIAL MASTER: rebuild approved 59 mm material pages from fixed
+          # 1600x1132 geometry. Image generation supplies only the hero artwork;
+          # page layout, typography and sizing are code-controlled.
+          python3 scripts/build_material_page_master.py --site _site
+
+          # LOGO MASTER: place the corporate logo on the outer edge.
           python3 scripts/bake_logo_master.py --site _site
 
           # Upgrade the 59 mm material previews to realistic swatches.
