@@ -25,6 +25,7 @@ HIDDEN_PHYSICAL={24,25,26}
 EXPLICIT_BAR_MASKS={
     33:[(1.8,2.8,7.0,1.8)],   # 59 mm — mirror and glass
     34:[(1.8,2.8,7.0,1.8)],   # 59 mm — bamboo
+    35:[(1.6,2.4,7.5,2.2)],   # 59 mm — HPL: stray green bar above logo
     38:[(25.8,1.7,5.2,1.7)],  # 59 mm — artificial stone
     43:[(3.2,6.6,6.4,1.8)],   # contacts/catalog/configurator
 }
