@@ -40,6 +40,8 @@ HEADERS = {
     },
 }
 
+BASE_W = 1600
+BASE_H = 1132
 TITLE_SIZE = 42
 SUBTITLE_SIZE = 18
 TITLE_Y = 77
@@ -47,6 +49,7 @@ SUBTITLE_Y = 132
 INNER_MARGIN = 50
 
 # Only the old raster title/subtitle area is cleared.
+# Coordinates are stored in the full-page 1600x1132 master and scaled for thumbs.
 CLEAR_BOX = {
     35: (780, 50, 1600, 175),
     36: (0, 50, 850, 175),
@@ -64,29 +67,43 @@ def process(path: Path, physical: int, bold_path: str, regular_path: str):
     spec = HEADERS[physical]
     im = Image.open(path).convert("RGB")
     W, H = im.size
-    if (W, H) != (1600, 1132):
+
+    sx = W / BASE_W
+    sy = H / BASE_H
+    if abs(sx - sy) > 0.01:
         raise RuntimeError(
-            f"MATERIAL HEADER: unexpected raster size for {path.name}: {(W, H)}"
+            f"MATERIAL HEADER: unexpected aspect ratio for {path.name}: {(W, H)}"
         )
+    scale = sx
 
     d = ImageDraw.Draw(im)
-    d.rectangle(CLEAR_BOX[physical], fill=(255, 255, 255))
+    bx0, by0, bx1, by1 = CLEAR_BOX[physical]
+    clear_box = (
+        round(bx0 * scale),
+        round(by0 * scale),
+        round(bx1 * scale),
+        round(by1 * scale),
+    )
+    d.rectangle(clear_box, fill=(255, 255, 255))
 
-    title_font = ImageFont.truetype(bold_path, TITLE_SIZE)
-    subtitle_font = ImageFont.truetype(regular_path, SUBTITLE_SIZE)
+    title_font = ImageFont.truetype(bold_path, max(8, round(TITLE_SIZE * scale)))
+    subtitle_font = ImageFont.truetype(regular_path, max(5, round(SUBTITLE_SIZE * scale)))
 
     title = spec["title"]
     subtitle = spec["subtitle"]
+    inner = round(INNER_MARGIN * scale)
+    title_y = round(TITLE_Y * scale)
+    subtitle_y = round(SUBTITLE_Y * scale)
 
     if spec["side"] == "left":
         bbox = d.textbbox((0, 0), title, font=title_font)
         title_w = bbox[2] - bbox[0]
-        x = W - INNER_MARGIN - title_w
+        x = W - inner - title_w
     else:
-        x = INNER_MARGIN
+        x = inner
 
-    d.text((x, TITLE_Y), title, font=title_font, fill=(34, 34, 34))
-    d.text((x, SUBTITLE_Y), subtitle, font=subtitle_font, fill=(145, 145, 145))
+    d.text((x, title_y), title, font=title_font, fill=(34, 34, 34))
+    d.text((x, subtitle_y), subtitle, font=subtitle_font, fill=(145, 145, 145))
 
     im.save(path, "WEBP", quality=96, method=6)
 
