@@ -60,6 +60,10 @@ jobs:
           # Catalog-wide visual rule: no decorative green header bars.
           python3 scripts/remove_header_accent_bars.py --site _site
 
+          # Approved material-spread header: identical HPL / natural veneer
+          # typography, with titles toward the binding and logos on the outer edge.
+          python3 scripts/standardize_material_headers.py --site _site
+
           # The viewer already provides the canonical black page number below
           # every sheet. Remove every printed/internal folio from the page art.
           python3 scripts/remove_all_internal_folios.py --site _site
