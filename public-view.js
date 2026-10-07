@@ -5,7 +5,7 @@
 
   const pid=p=>Number(p.physicalIndex??p.id);
   const pad=n=>String(n).padStart(3,'0');
-  const ASSET_V='master59-material-page-master-v1';;;;;;;;;;;;;;;;;;;;;;;;;;
+  const ASSET_V='master60-wall-panels-v1';;;;;;;;;;;;;;;;;;;;;;;;;;
   const pageSrc=p=>`assets/pages/page-${pad(pid(p))}.webp?v=${ASSET_V}`;
   const thumbSrc=p=>`assets/thumbs/page-${pad(pid(p))}.webp?v=${ASSET_V}`;
   const byId=new Map(raw.map(p=>[pid(p),p]));
@@ -213,7 +213,7 @@
           <section class="hdp-toc-plain">
             <div class="hdp-toc-head"><strong>SP</strong><b>Стеновые панели</b></div>
             <div class="hdp-toc-rows">
-              <div class="hdp-toc-row"><em>${numForSource('40')}</em><span>Материалы и конструктив</span></div>
+              <div class="hdp-toc-row"><em>${numForSource('40')}</em><span>Материалы и конструкции</span></div>
               <div class="hdp-toc-row"><em>${numForSource('41')}</em><span>Интерьерные решения</span></div>
               <div class="hdp-toc-row"><em>${numForSource('42')}</em><span>Контакты / каталог / конфигуратор</span></div>
               <div class="hdp-toc-row"><em>${numForSource('43')}</em><span>Задняя обложка</span></div>
