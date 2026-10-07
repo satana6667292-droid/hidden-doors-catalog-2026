@@ -80,6 +80,21 @@ jobs:
           python3 scripts/remove_all_internal_folios.py --site _site
           python3 scripts/audit_catalog_footer.py --site _site
 
+          # FINAL SPREAD MASTER: approved closing spread (public pages 40-41).
+          # Applied after legacy cleanup so the approved artwork stays untouched.
+          for n in 043 044; do
+            cat page-overrides/page-${n}-final.webp.b64.part* | base64 -d > "_site/assets/pages/page-${n}.webp"
+          done
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          for n in (43,44):
+              src=Path(f"_site/assets/pages/page-{n:03d}.webp")
+              thumb=Path(f"_site/assets/thumbs/page-{n:03d}.webp")
+              im=Image.open(src).convert("RGB")
+              im.resize((360,255),Image.Resampling.LANCZOS).save(thumb,"WEBP",quality=92,method=6)
+          PY
+
           # Build full-catalog visual QA sheets on every deploy. These are
           # inspected before a catalog change is handed back for review.
           python3 scripts/build_catalog_contact_sheets.py --site _site
