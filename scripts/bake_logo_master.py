@@ -56,14 +56,14 @@ COLLECTION_MODEL_PAGES = {7, 8, 11, 12, 15, 16, 19, 20}
 # placing the new master. Page 30 had no logo and receives one on the right.
 OLD_LOGO_SIDE = {
     27: "right", 29: "right", 31: "right",
-    33: "right", 35: "right", 37: "right", 39: "right", 41: "right",
+    33: "right", 35: "right", 37: "right", 39: "right",
 }
 
 # Spread-header master:
 # logo always sits on the outer edge of the spread;
 # title/subtitle always sit on the binding side.
 # These are the visible left pages after the hidden 23A/24/25 sources.
-HEADER_TO_BINDING_PAGES = {31, 33, 35, 37, 39, 41, 43}
+HEADER_TO_BINDING_PAGES = {31, 33, 35, 37, 39, 43}
 
 # Header search windows are intentionally limited to the title/subtitle area.
 # They exclude body copy and ignore green status badges during pixel detection.
