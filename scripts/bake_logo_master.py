@@ -236,7 +236,11 @@ def process_image(path: Path, physical: int, logo_src: Image.Image):
     # position first. The title is pasted only after all logo cleanup, so the
     # old right-side logo mask can never erase the relocated title.
     old_side = OLD_LOGO_SIDE.get(physical)
-    if physical == 31:
+    if physical in {41, 42}:
+        # Wall-panels master already owns a clean blank logo zone.
+        # Do not erase its image cards; just place the corporate logo.
+        pass
+    elif physical == 31:
         # Clear both the historical right placement and the contaminated left
         # master zone before placing the clean logo.
         clear_logo_zone(im, physical, "right")
