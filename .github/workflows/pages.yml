@@ -52,6 +52,10 @@ jobs:
           # page layout, typography and sizing are code-controlled.
           python3 scripts/build_material_page_master.py --site _site
 
+          # WALL PANELS MASTER: rebuild the approved 38-39 spread from fixed
+          # 1600x1132 page geometry and the approved PVC-milling visuals.
+          python3 scripts/build_wall_panels_master.py --site _site
+
           # LOGO MASTER: place the corporate logo on the outer edge.
           python3 scripts/bake_logo_master.py --site _site
 
