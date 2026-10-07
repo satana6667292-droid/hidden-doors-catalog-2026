@@ -89,6 +89,13 @@ def build(site:Path):
     detail=load_asset(assets,'pvc-detail.webp')
     beige=load_asset(assets,'beige-door.webp')
 
+    # Approved realistic material swatches — no decorative stripes, only
+    # the actual surface structure / finish.
+    veneer_swatch=load_asset(assets,'veneer-v2.webp')
+    pvc_swatch=load_asset(assets,'pvc-v2.webp')
+    egger_swatch=load_asset(assets,'egger-v2.webp')
+    hpl_swatch_img=load_asset(assets,'hpl-v2.webp')
+
     # physical 41 / public 38 — left page
     p=Image.new('RGB',(W,H),WHITE); d=ImageDraw.Draw(p)
     # outer logo zone intentionally blank; LOGO MASTER fills it.
@@ -113,7 +120,7 @@ def build(site:Path):
         d.text((675,yy),line,font=F(FR,15),fill=GRAY); yy+=22
 
     boxes=[(675,280,1068,492),(1100,280,1493,492),(675,515,1068,727),(1100,515,1493,727)]
-    swatches=[wood_swatch((361,82),3,True),detail,wood_swatch((361,82),7,False),hpl_swatch((361,82))]
+    swatches=[veneer_swatch,pvc_swatch,egger_swatch,hpl_swatch_img]
     data=[
       ('Натуральный шпон','Натуральная древесная текстура. Рисунок и тон подбираются под проект.'),
       ('МДФ в ПВХ пленке','Практичное декоративное покрытие с широким выбором цветов, текстур и вариантов фрезеровки.'),
@@ -159,7 +166,7 @@ def build(site:Path):
     e.text((785,908),'Индивидуальные рисунки фрезеровки и скрытая дверь в едином стиле.',font=F(FR,12),fill=GRAY)
 
     save_page(q,site,42)
-    print('WALL PANELS MASTER: rebuilt physical 41-42 from approved spread.')
+    print('WALL PANELS MASTER: rebuilt physical 41-42 with approved realistic material swatches.')
 
 if __name__=='__main__':
     ap=argparse.ArgumentParser(); ap.add_argument('--site',required=True); args=ap.parse_args()
