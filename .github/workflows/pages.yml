@@ -89,6 +89,12 @@ jobs:
           # BACK COVER MASTER: separate standalone final page after the closing spread.
           cat page-overrides/page-045-back-cover.webp.b64.part* | base64 -d > "_site/assets/pages/page-045.webp"
 
+          # Use the exact corporate logo from hidden-doors.ru and remove the
+          # temporary catalog.hidden-doors.ru text from the artwork.
+          python3 scripts/patch_back_cover_branding.py \
+            --page _site/assets/pages/page-045.webp \
+            --logo-b64 brand-assets/site-logo.png.b64
+
           python3 - <<'PY'
           from pathlib import Path
           from PIL import Image
