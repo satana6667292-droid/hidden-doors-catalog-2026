@@ -99,6 +99,9 @@ jobs:
               im.resize((360,255),Image.Resampling.LANCZOS).save(thumb,"WEBP",quality=92,method=6)
           PY
 
+          # Sync deployed catalog metadata with the approved final pages.
+          python3 scripts/patch_catalog_data_final.py --site _site
+
           # Build full-catalog visual QA sheets on every deploy. These are
           # inspected before a catalog change is handed back for review.
           python3 scripts/build_catalog_contact_sheets.py --site _site
