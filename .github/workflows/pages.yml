@@ -85,10 +85,14 @@ jobs:
           for n in 043 044; do
             cat page-overrides/page-${n}-final.webp.b64.part* | base64 -d > "_site/assets/pages/page-${n}.webp"
           done
+
+          # BACK COVER MASTER: separate standalone final page after the closing spread.
+          cat page-overrides/page-045-back-cover.webp.b64.part* | base64 -d > "_site/assets/pages/page-045.webp"
+
           python3 - <<'PY'
           from pathlib import Path
           from PIL import Image
-          for n in (43,44):
+          for n in (43,44,45):
               src=Path(f"_site/assets/pages/page-{n:03d}.webp")
               thumb=Path(f"_site/assets/thumbs/page-{n:03d}.webp")
               im=Image.open(src).convert("RGB")
@@ -125,6 +129,7 @@ jobs:
           test -s _site/editor.html
           test -s _site/catalog-master.js
           test -s _site/assets/pages/page-032.webp
+          test -s _site/assets/pages/page-045.webp
           test -s _site/_qa/contact-01.webp
           test -s _site/_qa/footer-audit.webp
 
