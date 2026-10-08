@@ -10,7 +10,7 @@ BASE_W, BASE_H = 1600, 1132
 # Areas in the approved back-cover raster that came from the generated artwork.
 # We replace only the fake logo and the temporary catalog URL.
 LOGO_CLEAR = (88, 62, 420, 184)
-URL_CLEAR  = (280, 815, 530, 865)
+URL_CLEAR  = (312, 910, 545, 952)
 
 # Official logo placement on the back cover.
 LOGO_X, LOGO_Y = 102, 78
