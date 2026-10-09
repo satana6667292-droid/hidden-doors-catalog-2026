@@ -104,10 +104,17 @@ jobs:
             --page _site/assets/pages/page-045.webp \
             --logo-b64 brand-assets/site-logo.png.b64
 
+          # APPROVED REDESIGN MASTERS — 2026-10-09.
+          # These pages were explicitly approved in chat and must be applied
+          # after all legacy transformations so their composition stays exact.
+          for n in 032 033 036 041; do
+            base64 -d "approved-redesigns/page-${n}-approved.webp.b64" > "_site/assets/pages/page-${n}.webp"
+          done
+
           python3 - <<'PY'
           from pathlib import Path
           from PIL import Image
-          for n in (43,44,45):
+          for n in (32,33,36,41,43,44,45):
               src=Path(f"_site/assets/pages/page-{n:03d}.webp")
               thumb=Path(f"_site/assets/thumbs/page-{n:03d}.webp")
               im=Image.open(src).convert("RGB")
