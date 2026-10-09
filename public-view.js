@@ -45,10 +45,12 @@
 
   let spreadIndex=0;
   let mobileIndex=0;
-  let mode='spread';
+  let mode='page';
   let lightScale=1;
   let lightBaseWidth=0;
   let lightPage=null;
+  let lightZoom='fit';
+  const singleReading=()=>mode==='page'||isMobile();
 
   document.body.classList.add('hd-public-view');
   const root=document.createElement('div');
@@ -63,9 +65,11 @@
       <div class="hdp-head-actions">
         <button class="hdp-ghost" id="hdpContents">Содержание</button>
         <div class="hdp-view-toggle" role="group" aria-label="Вид каталога">
-          <button data-mode="spread" class="active">Развороты</button>
+          <button data-mode="page" class="active">Страницы</button>
+          <button data-mode="spread">Развороты</button>
           <button data-mode="grid">Все страницы</button>
         </div>
+        <button class="hdp-fullscreen" data-fullscreen aria-label="На весь экран" aria-pressed="false"><span aria-hidden="true">⛶</span><span data-fullscreen-label>На весь экран</span></button>
       </div>
     </header>
 
@@ -89,17 +93,21 @@
     </aside>
     <div class="hdp-drawer-shade" id="hdpShade"></div>
 
-    <div class="hdp-lightbox hidden" id="hdpLightbox">
+    <div class="hdp-lightbox hidden" id="hdpLightbox" role="dialog" aria-modal="true" aria-labelledby="hdpLightTitle">
       <div class="hdp-lightbox-head">
         <div><b id="hdpLightTitle">Страница</b><span>Увеличивайте и перетаскивайте страницу мышкой</span></div>
         <div class="hdp-light-tools">
-          <button id="hdpZoomOut">−</button><span id="hdpZoomText">Вписано</span><button id="hdpZoomIn">＋</button>
-          <button id="hdpZoomActual">100%</button><button id="hdpZoomFit">Вписать</button><button id="hdpLightClose" class="close">×</button>
+          <button id="hdpZoomOut" aria-label="Уменьшить">−</button><span id="hdpZoomText">Вписано</span><button id="hdpZoomIn" aria-label="Увеличить">＋</button>
+          <button id="hdpZoomActual">100%</button><button id="hdpZoomFit">Вписать</button><button data-fullscreen aria-label="На весь экран" aria-pressed="false">⛶</button><button id="hdpLightClose" class="close" aria-label="Закрыть увеличенный просмотр">×</button>
         </div>
       </div>
-      <div class="hdp-light-stage" id="hdpLightStage">
-        <img id="hdpLightImg" alt="">
-        <div id="hdpLightLive" class="hdp-light-live hidden"></div>
+      <div class="hdp-light-body">
+        <button class="hdp-light-arrow prev" id="hdpLightPrev" aria-label="Предыдущая страница">‹</button>
+        <div class="hdp-light-stage" id="hdpLightStage">
+          <img id="hdpLightImg" alt="">
+          <div id="hdpLightLive" class="hdp-light-live hidden"></div>
+        </div>
+        <button class="hdp-light-arrow next" id="hdpLightNext" aria-label="Следующая страница">›</button>
       </div>
     </div>`;
   document.body.appendChild(root);
@@ -256,8 +264,8 @@
   }
 
   function renderReading(){
-    if(mode!=='spread')return;
-    if(isMobile()){
+    if(mode==='grid')return;
+    if(singleReading()){
       const p=raw[Math.max(0,Math.min(mobileIndex,raw.length-1))];
       $('#hdpSpread').className='hdp-spread single mobile-single'+(pid(p)===1?' cover':'');
       $('#hdpSpread').innerHTML=pageMarkup(p,pid(p)===1?'обложка':'');
@@ -290,10 +298,10 @@
 
   function jumpTo(page){
     syncIndexesFromPage(page);
-    mode='spread';
+    if(mode==='grid')mode='page';
     setModeButtons();
-    renderReading();
     closeDrawer();
+    saveReadingLink();
     window.scrollTo({top:0,behavior:'smooth'});
   }
 
@@ -320,59 +328,125 @@
     };
   }
 
-  function openDrawer(){root.classList.add('drawer-open');$('#hdpDrawer').setAttribute('aria-hidden','false')}
-  function closeDrawer(){root.classList.remove('drawer-open');$('#hdpDrawer').setAttribute('aria-hidden','true')}
+  function openDrawer(){root.classList.add('drawer-open');$('#hdpDrawer').inert=false;$('#hdpDrawer').setAttribute('aria-hidden','false')}
+  function closeDrawer(){root.classList.remove('drawer-open');$('#hdpDrawer').inert=true;$('#hdpDrawer').setAttribute('aria-hidden','true')}
 
   function setModeButtons(){
+    root.classList.toggle('hdp-reading',mode!=='grid');
+    root.dataset.mode=mode;
     $$('.hdp-view-toggle button').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
-    $('#hdpSpreadView').classList.toggle('hidden',mode!=='spread');
+    $$('.hdp-view-toggle button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
+    $('#hdpSpreadView').classList.toggle('hidden',mode==='grid');
     $('#hdpGridView').classList.toggle('hidden',mode!=='grid');
     if(mode==='grid')renderGrid();else renderReading();
   }
 
   function fitWidth(){
     const stage=$('#hdpLightStage');
-    const pad=isMobile()?24:56;
-    return Math.max(300,Math.min(stage.clientWidth-pad,(stage.clientHeight-pad)*(297/210)));
+    const style=getComputedStyle(stage);
+    const width=stage.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight);
+    const height=stage.clientHeight-parseFloat(style.paddingTop)-parseFloat(style.paddingBottom);
+    return Math.max(1,Math.min(width,height*(297/210)));
   }
 
   function updateLightWidth(label){
     if(!lightPage)return;
     const target=$('#hdpLightLive');
-    target.style.width=`${Math.round(lightBaseWidth*lightScale)}px`;
-    $('#hdpZoomText').textContent=label||`${Math.round(lightScale*100)}%`;
+    target.style.width=`${Math.floor(lightBaseWidth*lightScale)}px`;
+    $('#hdpZoomText').textContent=label||(lightZoom==='fit'?'Вписано':`${Math.round(lightScale*100)}%`);
   }
 
   function setLightFit(){
     if(!lightPage)return;
-    lightBaseWidth=fitWidth();lightScale=1;
+    lightZoom='fit';lightBaseWidth=fitWidth();lightScale=1;
     updateLightWidth('Вписано');
     const stage=$('#hdpLightStage');stage.scrollLeft=0;stage.scrollTop=0;
   }
 
   function setLightActual(){
     if(!lightPage)return;
-    lightBaseWidth=1400;lightScale=1;updateLightWidth('100%');
+    lightZoom='actual';lightBaseWidth=1400;lightScale=1;updateLightWidth('100%');
   }
 
-  function openLight(page){
+  function openLight(page,keepZoom=false){
+    const alreadyOpen=!!lightPage;
     lightPage=page;
-    $('#hdpLightTitle').textContent=`${publicNum(page)} · ${page.title}`;
+    syncIndexesFromPage(page);
+    renderReading();
+    $('#hdpLightTitle').textContent=`${publicNum(page)} / ${raw.length} · ${page.title}`;
     $('#hdpLightbox').classList.remove('hidden');
     document.body.classList.add('hdp-no-scroll');
+    $('.hdp-header').inert=true;$('.hdp-main').inert=true;
     const img=$('#hdpLightImg'),live=$('#hdpLightLive');
     img.classList.add('hidden');img.removeAttribute('src');
     live.classList.remove('hidden');
     live.innerHTML=isCollectionPage(page)?collectionSheetMarkup(page,false):standardSheetMarkup(page,false);
     $('#hdpZoomOut').disabled=false;$('#hdpZoomIn').disabled=false;$('#hdpZoomActual').disabled=false;$('#hdpZoomFit').disabled=false;
-    lightBaseWidth=fitWidth();lightScale=1;updateLightWidth('Вписано');
+    $('#hdpLightPrev').disabled=pageIndex.get(pid(page))===0;
+    $('#hdpLightNext').disabled=pageIndex.get(pid(page))===raw.length-1;
+    if(!keepZoom||lightZoom==='fit')setLightFit();else updateLightWidth();
+    $('#hdpLightStage').scrollLeft=0;$('#hdpLightStage').scrollTop=0;
+    if(!alreadyOpen)$('#hdpLightClose').focus({preventScroll:true});
     requestAnimationFrame(()=>prepareFolioSheets(live));
+    saveReadingLink();
   }
 
   function closeLight(){
+    const page=lightPage;
     $('#hdpLightbox').classList.add('hidden');
     document.body.classList.remove('hdp-no-scroll');
+    $('.hdp-header').inert=false;$('.hdp-main').inert=false;
     lightPage=null;
+    if(page)$(mode==='grid'?`#hdpGridView [data-open="${pid(page)}"]`:`#hdpSpread [data-open="${pid(page)}"]`)?.focus({preventScroll:true});
+    saveReadingLink();
+  }
+
+  function goLight(delta){
+    if(!lightPage)return;
+    const next=raw[(pageIndex.get(pid(lightPage))??0)+delta];
+    if(next)openLight(next,true);
+  }
+
+  // The address always identifies the current page and reading mode.
+  function saveReadingLink(){
+    const page=lightPage||raw[mobileIndex]||raw[0];
+    const state=new URLSearchParams({page:publicNum(page),view:mode});
+    if(lightPage)state.set('zoom','1');
+    const hash=`#${state}`;
+    if(location.hash!==hash)history.replaceState(null,'',hash);
+  }
+
+  function restoreReadingLink(){
+    const state=new URLSearchParams(location.hash.slice(1));
+    const page=raw[Number(state.get('page'))-1]||raw[0];
+    mode=['page','spread','grid'].includes(state.get('view'))?state.get('view'):'page';
+    syncIndexesFromPage(page);
+    setModeButtons();
+    closeDrawer();
+    if(state.get('zoom')==='1')openLight(page);
+    else if(lightPage)closeLight();
+    saveReadingLink();
+  }
+
+  const fullscreenElement=()=>document.fullscreenElement||document.webkitFullscreenElement;
+  function syncFullscreen(){
+    const active=!!fullscreenElement();
+    $$('[data-fullscreen]').forEach(b=>{
+      b.setAttribute('aria-pressed',String(active));
+      b.setAttribute('aria-label',active?'Выйти из полноэкранного режима':'На весь экран');
+      b.title=b.getAttribute('aria-label');
+    });
+    $('[data-fullscreen-label]').textContent=active?'Обычный экран':'На весь экран';
+    if(lightPage&&lightZoom==='fit')requestAnimationFrame(setLightFit);
+  }
+
+  async function toggleFullscreen(){
+    try{
+      if(fullscreenElement())await (document.exitFullscreen?.()||document.webkitExitFullscreen?.());
+      else await (root.requestFullscreen?.()||root.webkitRequestFullscreen?.());
+    }catch(_){
+      $$('[data-fullscreen]').forEach(b=>{b.title='Полноэкранный режим недоступен в этом браузере';});
+    }
   }
 
   function bindPageOpen(){
@@ -382,8 +456,8 @@
   }
 
   function go(delta){
-    if(mode!=='spread')return;
-    if(isMobile()){
+    if(mode==='grid')return;
+    if(singleReading()){
       const ni=mobileIndex+delta;if(ni<0||ni>=raw.length)return;
       mobileIndex=ni;spreadIndex=spreadIndexByPage.get(pid(raw[mobileIndex]))??spreadIndex;
     }else{
@@ -391,7 +465,7 @@
       spreadIndex=ni;mobileIndex=pageIndex.get(pid(spreads[spreadIndex].pages[0]))??mobileIndex;
     }
     renderReading();
-    window.scrollTo({top:0,behavior:'smooth'});
+    saveReadingLink();
   }
 
   $('#hdpPrev').onclick=()=>go(-1);
@@ -399,12 +473,22 @@
   $('#hdpContents').onclick=openDrawer;
   $('#hdpDrawerClose').onclick=closeDrawer;
   $('#hdpShade').onclick=closeDrawer;
-  $$('.hdp-view-toggle button').forEach(b=>b.onclick=()=>{mode=b.dataset.mode;setModeButtons()});
+  $$('.hdp-view-toggle button').forEach(b=>b.onclick=()=>{mode=b.dataset.mode;setModeButtons();saveReadingLink()});
   $('#hdpLightClose').onclick=closeLight;
-  $('#hdpZoomOut').onclick=()=>{lightScale=Math.max(.35,lightScale-.25);updateLightWidth()};
-  $('#hdpZoomIn').onclick=()=>{lightScale=Math.min(4,lightScale+.25);updateLightWidth()};
+  $('#hdpLightPrev').onclick=()=>goLight(-1);
+  $('#hdpLightNext').onclick=()=>goLight(1);
+  $('#hdpZoomOut').onclick=()=>{lightZoom='custom';lightScale=Math.max(.35,lightScale-.25);updateLightWidth()};
+  $('#hdpZoomIn').onclick=()=>{lightZoom='custom';lightScale=Math.min(4,lightScale+.25);updateLightWidth()};
   $('#hdpZoomFit').onclick=setLightFit;
   $('#hdpZoomActual').onclick=setLightActual;
+  $$('[data-fullscreen]').forEach(b=>{
+    b.hidden=!(document.fullscreenEnabled||document.webkitFullscreenEnabled);
+    b.classList.toggle('hidden',b.hidden);
+    b.onclick=toggleFullscreen;
+  });
+  document.addEventListener('fullscreenchange',syncFullscreen);
+  document.addEventListener('webkitfullscreenchange',syncFullscreen);
+  window.addEventListener('hashchange',restoreReadingLink);
 
   // Drag-to-pan in the enlarged view.
   const stage=$('#hdpLightStage');
@@ -421,7 +505,14 @@
     stage.scrollTop=pan.top-(e.clientY-pan.y);
   });
   const stopPan=()=>{pan=null;stage.classList.remove('dragging')};
-  stage.addEventListener('pointerup',stopPan);stage.addEventListener('pointercancel',stopPan);
+  stage.addEventListener('pointerup',e=>{
+    if(pan&&isMobile()&&lightZoom==='fit'){
+      const dx=e.clientX-pan.x,dy=e.clientY-pan.y;
+      if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy))goLight(dx<0?1:-1);
+    }
+    stopPan();
+  });
+  stage.addEventListener('pointercancel',stopPan);
 
   // Swipe on mobile reading mode.
   let swipeX=null;
@@ -433,23 +524,34 @@
   });
 
   document.addEventListener('keydown',e=>{
-    if(!$('#hdpLightbox').classList.contains('hidden')){if(e.key==='Escape')closeLight();return}
-    if(root.classList.contains('drawer-open')&&e.key==='Escape'){closeDrawer();return}
-    if(mode==='spread'&&e.key==='ArrowLeft')go(-1);
-    if(mode==='spread'&&e.key==='ArrowRight')go(1);
+    if(lightPage){
+      if(e.key==='Escape'){e.preventDefault();closeLight()}
+      if(e.key==='ArrowLeft'){e.preventDefault();goLight(-1)}
+      if(e.key==='ArrowRight'){e.preventDefault();goLight(1)}
+      if(e.key==='Tab'){
+        const buttons=$$('#hdpLightbox button:not(:disabled)').filter(b=>!b.hidden&&b.getClientRects().length);
+        const first=buttons[0],last=buttons[buttons.length-1];
+        if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus()}
+        else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus()}
+      }
+      return;
+    }
+    if(root.classList.contains('drawer-open')){if(e.key==='Escape')closeDrawer();return}
+    if(mode!=='grid'&&e.key==='ArrowLeft'){e.preventDefault();go(-1)}
+    if(mode!=='grid'&&e.key==='ArrowRight'){e.preventDefault();go(1)}
   });
 
   let lastMobile=isMobile();
   window.addEventListener('resize',()=>{
     const now=isMobile();
     if(now!==lastMobile){
-      const p=now?(currentSpread()?.pages?.[0]||raw[0]):raw[mobileIndex]||raw[0];
+      const p=raw[mobileIndex]||raw[0];
       syncIndexesFromPage(p);lastMobile=now;renderReading();
     }
-    if(!$('#hdpLightbox').classList.contains('hidden')&&lightPage&&$('#hdpZoomText').textContent==='Вписано')setLightFit();
+    if(lightPage&&lightZoom==='fit')setLightFit();
   });
 
   renderSections();
   renderDrawer();
-  renderReading();
+  restoreReadingLink();
 })();
