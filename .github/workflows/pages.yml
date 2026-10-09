@@ -59,7 +59,7 @@ jobs:
           # LOGO MASTER: place the corporate logo on the outer edge.
           python3 scripts/bake_logo_master.py --site _site
 
-          # Upgrade the 59 mm material previews to realistic swatches.
+          # Insert the eight committed photorealistic material images.
           python3 scripts/enhance_page32_materials.py --site _site
 
           # Remove duplicate visual-page headings while keeping titles on
