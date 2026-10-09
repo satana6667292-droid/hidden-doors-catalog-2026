@@ -78,6 +78,9 @@ jobs:
           # The viewer already provides the canonical black page number below
           # every sheet. Remove every printed/internal folio from the page art.
           python3 scripts/remove_all_internal_folios.py --site _site
+
+          # Give both marked 59 mm construction captions clear bottom padding.
+          python3 scripts/fix_page31_card_spacing.py --site _site
           python3 scripts/audit_catalog_footer.py --site _site
 
           # FINAL SPREAD MASTER: approved closing spread (public pages 40-41).
